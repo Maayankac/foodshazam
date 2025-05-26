@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodShazam - פרופיל</title>
+  <link rel="stylesheet" href="foodshazam-profil.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script defer src="profile.js"></script>
+</head>
+<body>
+  <h1>הפרופיל שלי</h1>
+  <div id="profile-container">
+    <p><strong>שם מלא:</strong> <span id="profile-name"></span></p>
+    <p><strong>אימייל:</strong> <span id="profile-email"></span></p>
+    <p><strong>העדפת תזונה:</strong> <span id="profile-diet"></span></p>
+    <p><strong>אלרגיות:</strong> <span id="profile-allergies"></span></p>
+    <button id="logout-button">התנתק</button>
+  </div>
+  
+  <button id="toggle-edit-button">ערוך פרופיל ⬇️</button>
+  <div id="edit-profile-wrapper" style="display:none;">
+    <form id="edit-profile-form">
+      <label>שם מלא: <input type="text" id="edit-fullname"></label>
+      <label>העדפת תזונה:
+        <select id="edit-diet">
+          <option value="">בחר</option>
+          <option value="vegan">טבעוני</option>
+          <option value="vegetarian">צמחוני</option>
+          <option value="omnivore">אוכל הכל</option>
+          <option value="kosher">כשר</option>
+          <option value="keto">קיטו</option>
+          <option value="lactose_free">רגישות ללקטוז</option>
+        </select>
+      </label>
+      <div>
+        <p>אלרגיות:</p>
+        <div id="edit-allergies-list"></div>
+        <input type="text" id="new-edit-allergy" placeholder="הוסף אלרגיה">
+        <button type="button" id="add-edit-allergy">➕ הוסף</button>
+      </div>
+      <button type="submit">💾 שמור שינויים</button>
+      <div id="edit-message" class="hidden"></div>
+    </form>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="foodshazma-home.html" class="active">
+      <img src="home.png" alt="בית">
+      <span>בית</span>
+    </a>
+    <a href="foodshazam-scan.html">
+      <img src="scan.png" alt="סריקה">
+      <span>סריקה</span>
+    </a>
+    <a href="foodshazam-history.html">
+      <img src="history.png" alt="היסטוריה">
+      <span>היסטוריה</span>
+    </a>
+    <a href="foodshazam-signup.html">
+      <img src="signup.png" alt="פרופיל">
+      <span>הרשמה/פרופיל</span>
+    </a>
+  </nav>
+</body>
+</html>

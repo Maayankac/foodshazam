@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תוצאות ניתוח מנה</title>
+    <link rel="stylesheet" href="foodshazma-scan.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+</head>
+<body>
+    <div class="scan-container">
+        <h2>תוצאת סריקה</h2>
+
+        <!-- תצוגת תמונה -->
+        <div class="preview-container">
+            <img id="preview-image" src="#" alt="תמונת המנה" class="result-image">
+        </div>
+
+        <!-- תוצאת זיהוי -->
+        <div class="food-info">
+            <h3 id="food-name">שם המנה</h3>
+            
+            <div class="nutrition-container">
+                <div class="nutrition-item">
+                    <span class="nutrition-value" id="calories-value">0</span>
+                    <span class="nutrition-label">קלוריות</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-value" id="protein-value">0</span>
+                    <span class="nutrition-label">חלבון (גרם)</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-value" id="carbs-value">0</span>
+                    <span class="nutrition-label">פחמימות (גרם)</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-value" id="fat-value">0</span>
+                    <span class="nutrition-label">שומן (גרם)</span>
+                </div>
+            </div>
+
+            <div class="ingredients-section">
+                <h4>מרכיבים:</h4>
+                <ul id="ingredients-list"></ul>
+            </div>
+
+            <div id="allergies-warning" class="allergy-warning hidden">
+                <h4>שים לב! מכיל אלרגנים:</h4>
+                <ul id="allergies-detected-list"></ul>
+            </div>
+
+            <button id="save-meal-button">שמור ארוחה</button>
+            <div id="messageBox" class="hidden"></div>
+        </div>
+    </div>
+
+    <!-- ניווט תחתון -->
+    <nav class="bottom-nav">
+        <a href="foodshazma-home.html">
+            <img src="home.png" alt="בית">
+            <span>דף הבית</span>
+        </a>
+        <a href="foodshazam-scan.html">
+            <img src="scan.png" alt="סריקה">
+            <span>סריקה</span>
+        </a>
+        <a href="foodshazam-history.html" class="active">
+            <img src="history.png" alt="היסטוריה">
+            <span>היסטוריה</span>
+        </a>
+        <a href="foodshazam-signup.html">
+            <img src="signup.png" alt="פרופיל">
+            <span>הרשמה</span>
+        </a>
+    </nav>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const imageUrl = urlParams.get('image_url');
+        const foodName = urlParams.get('food_name') || "מנה לא מזוהה";
+        const calories = urlParams.get('calories') || "0";
+        const protein = urlParams.get('protein') || "0";
+        const carbs = urlParams.get('carbs') || "0";
+        const fat = urlParams.get('fat') || "0";
+        const ingredients = urlParams.get('ingredients') || "";
+        const allergies = urlParams.get('allergies') || "";
+
+        document.getElementById("preview-image").src = imageUrl;
+        document.getElementById("food-name").textContent = foodName;
+        document.getElementById("calories-value").textContent = calories;
+        document.getElementById("protein-value").textContent = protein;
+        document.getElementById("carbs-value").textContent = carbs;
+        document.getElementById("fat-value").textContent = fat;
+
+        const ingredientsList = document.getElementById("ingredients-list");
+        ingredients.split(',').forEach(item => {
+            if (item.trim()) {
+                const li = document.createElement("li");
+                li.textContent = item.trim();
+                ingredientsList.appendChild(li);
+            }
+        });
+
+        const allergiesList = document.getElementById("allergies-detected-list");
+        if (allergies) {
+            document.getElementById("allergies-warning").classList.remove("hidden");
+            allergies.split(',').forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.trim();
+                allergiesList.appendChild(li);
+            });
+        }
+
+        document.getElementById("save-meal-button").addEventListener("click", async () => {
+            const supabase = window.supabase || supabase.createClient('https://YOUR_PROJECT.supabase.co', 'YOUR_PUBLIC_ANON_KEY');
+            const { data, error } = await supabase
+                .from('meals')
+                .insert([{
+                    food_name: foodName,
+                    calories: +calories,
+                    protein: +protein,
+                    carbs: +carbs,
+                    fat: +fat,
+                    ingredients,
+                    allergies,
+                    image_url: imageUrl,
+                    created_at: new Date().toISOString()
+                }]);
+
+            const messageBox = document.getElementById("messageBox");
+            if (error) {
+                messageBox.textContent = "אירעה שגיאה בעת שמירת הארוחה";
+                messageBox.classList.remove("hidden");
+            } else {
+                messageBox.textContent = "הארוחה נשמרה בהצלחה!";
+                messageBox.classList.remove("hidden");
+            }
+        });
+    </script>
+</body>
+</html>

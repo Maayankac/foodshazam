@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShazma - סריקת מזון</title>
+    <link rel="stylesheet" href="foodshazma-scan.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="outer-wrapper">
+      <div id="scan-card">
+        <h1>סריקת מנה</h1>
+
+        <!-- סטטוס מצלמה -->
+        <div id="camera-status" class="status-inactive">מצלמה כבויה</div>
+
+        <!-- אזור מצלמה ווידאו -->
+        <video id="camera" autoplay playsinline></video>
+        <button id="camera-toggle" class="camera-toggle">הפעל מצלמה</button>
+
+        <!-- אזור העלאה / צילום -->
+        <div id="upload-section">
+          <div id="upload-box" class="upload-box">
+            <img src="camera-512.webp" alt="העלאת תמונה" id="upload-icon">
+            <p>לחץ או גרור תמונה לכאן</p>
+            <span>לסריקת המנה והמרכיבים שלה</span>
+            <input type="file" id="file-input" accept="image/*" style="display:none;">
+          </div>
+        </div>
+
+        <button id="capture-button" class="camera-button hidden">
+          <img src="camera-512.webp" alt="צלם תמונה">
+          צלם תמונה
+        </button>
+
+        <!-- תצוגת תצוגה מוקדמת -->
+        <div id="preview" class="preview hidden">
+          <img id="preview-image" src="#" alt="תצוגה מקדימה">
+        </div>
+
+        <!-- הודעת טעינה -->
+        <div id="loading-section" class="hidden">
+          <div class="loading-spinner"></div>
+          <p>מזהה את המנה...</p>
+        </div>
+
+        <!-- הודעת שגיאה / הצלחה -->
+        <div id="messageBox" class="hidden"></div>
+
+        <!-- אפשרויות נסיון חוזר -->
+        <div id="retry-options" class="hidden">
+          <button id="retry-camera" class="retry-button">נסה שוב עם מצלמה</button>
+          <button id="retry-upload" class="retry-button">נסה שוב עם העלאה</button>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="capture-canvas" class="hidden"></canvas>
+
+    <nav class="bottom-nav">
+      <a href="foodshazma-home.html">
+        <img src="home.png" alt="בית">
+        <span>דף הבית</span>
+      </a>
+      <a href="foodshazam-scan.html">
+        <img src="scan.png" alt="סריקה">
+        <span>סריקה</span>
+      </a>
+      <a href="foodshazam-history.html" class="active">
+        <img src="history.png" alt="היסטוריה">
+        <span>היסטוריה</span>
+      </a>
+      <a href="foodshazam-signup.html">
+        <img src="signup.png" alt="פרופיל">
+        <span>הרשמה/פרופיל</span>
+      </a>
+    </nav>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script defer src="foodshazam-scan.js"></script>
+</body>
+</html>

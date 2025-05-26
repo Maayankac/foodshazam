@@ -1,0 +1,202 @@
+/* Reset בסיסי */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* גוף הדף */
+  body {
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 20px 100px 20px; /* TOP מוגדל */
+    margin-top: 10px;
+  }
+  h1 {
+    margin: 10px 0 30px 0; /* TOP מוקטן */
+    color: #343a40;
+  }
+  
+  /* סקשן מצלמה */
+  #camera-section {
+    width: 90%;
+    max-width: 400px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  
+  #camera {
+    width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* כפתור צילום */
+  #capture-button {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f9b473;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+  
+  #capture-button:hover {
+    opacity: 0.9;
+  }
+  
+  /* כפתור העלאה מהגלריה */
+  #upload-section {
+    margin: 20px 0;
+  }
+  
+  .upload-button {
+    display: inline-block;
+    background: #f9b473;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+  }
+  
+  .upload-button:hover {
+    opacity: 0.9;
+  }
+  
+  /* תצוגת תמונה שנסרקה */
+  #preview {
+    margin-top: 30px;
+  }
+  
+  #preview img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .form-container {
+    margin-top: 80px; /* או יותר אם צריך */
+  }
+  
+  
+  /* טפסים */
+  form {
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  
+  input[type="text"], input[type="email"], input[type="password"], select {
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: 1px solid #ced4da;
+    background-color: white;
+    font-size: 16px;
+    width: 100%;
+  }
+  
+  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, select:focus {
+    outline: none;
+    border-color:#f9b473;
+    box-shadow: 0 0 5px rgba(79, 172, 254, 0.5);
+  }
+  
+  /* כפתור שליחה */
+  form button {
+    background: #f9b473;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  form button:hover {
+    opacity: 0.9;
+  }
+  
+  /* סרגל ניווט תחתון */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+  }
+  
+  .bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+    color: #888;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  
+  .bottom-nav a img {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+  }
+  
+  .bottom-nav a.active,
+  .bottom-nav a:hover {
+    color: #ff5722;
+  }
+  
+  .bottom-nav a.active img {
+    filter: invert(42%) sepia(83%) saturate(464%) hue-rotate(344deg) brightness(93%) contrast(88%);
+  }
+  
+  .spacer-bottom {
+    height: 80px;
+    flex-shrink: 0;
+}
+#messageBox {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #4CAF50; /* ירוק להצלחה */
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    font-size: 16px;
+    z-index: 9999;
+    transition: all 0.3s ease-in-out;
+}
+
+#messageBox.error {
+    background-color: #f44336; /* אדום לשגיאה */
+}
+
+#messageBox.hidden {
+    display: none;
+}
+
+

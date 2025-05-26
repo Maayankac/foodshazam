@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>התחברות</title>
+    <link rel="stylesheet" href="foodhazam-login.css">
+    <link rel="stylesheet" href="foodshazam.css">
+</head>
+<body class="centered">
+    <div class="form-container">
+        <h2>התחברות</h2>
+
+        <form id="loginForm">
+            <!-- הוספתי id="email" ו-id="password" -->
+            <input type="email" id="email" placeholder="אימייל" required>
+            <input type="password" id="password" placeholder="סיסמה" required>
+            <button type="submit">התחבר</button>
+        </form>
+
+        <div id="loginMessage" class="hidden"></div>
+
+        <p>אין לך חשבון? <a href="foodshazam-signup.html">הרשם כאן</a></p>
+    </div>
+
+    <div class="spacer-bottom"></div>
+
+    <nav class="bottom-nav">
+        <a href="foodshazma-home.html" class="active">
+          <img src="home.png" alt="בית">
+          <span>דף הבית</span>
+        </a>
+        <a href="foodshazam-scan.html">
+          <img src="scan.png" alt="סריקה">
+          <span>סריקה</span>
+        </a>
+        <a href="foodshazam-history.html">
+          <img src="history.png" alt="היסטוריה">
+          <span>היסטוריה</span>
+        </a>
+        <a href="foodshazam-signup.html">
+          <img src="signup.png" alt="פרופיל">
+          <span>הרשמה/פרופיל</span>
+        </a>
+    </nav>
+
+    <!-- טעינת Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- הסקריפט שלך -->
+    <script src="foodhazam-login.js"></script>
+</body>
+</html>

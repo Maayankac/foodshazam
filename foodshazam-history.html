@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>היסטוריית חיפושים</title>
+  <link rel="stylesheet" href="foodshazam-history.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script defer src="foodshazam-history.js"></script>
+</head>
+<body>
+  <h1>היסטוריית חיפושים</h1>
+
+  <!-- מיכל התמונות -->
+  <div id="history-container"></div>
+
+  <!-- פופאפ צפייה בפרטי הסריקה -->
+  <div id="popup" class="hidden">
+    <div class="popup-content">
+      <span id="close-popup">&times;</span>
+      <h3>פרטי המנה</h3>
+      <img id="popup-image" src="" alt="תמונה של המנה" />
+      <p><strong>סה״כ קלוריות:</strong> <span id="popup-calories"></span></p>
+      <h4>מרכיבים:</h4>
+      <ul id="popup-ingredients"></ul>
+      <h4>אלרגנים:</h4>
+      <ul id="popup-allergens"></ul>
+    </div>
+  </div>
+
+  <!-- תפריט תחתון -->
+  <nav class="bottom-nav">
+    <a href="foodshazma-home.html">
+      <img src="home.png" alt="בית" />
+      <span>דף הבית</span>
+    </a>
+    <a href="foodshazam-scan.html">
+      <img src="scan.png" alt="סריקה" />
+      <span>סריקה</span>
+    </a>
+    <a href="foodshazam-history.html" class="active">
+      <img src="history.png" alt="היסטוריה" />
+      <span>היסטוריה</span>
+    </a>
+    <a href="foodshazam-signup.html">
+      <img src="signup.png" alt="פרופיל" />
+      <span>הרשמה/פרופיל</span>
+    </a>
+  </nav>
+</body>
+</html>

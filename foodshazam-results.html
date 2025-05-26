@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>FoodShazma - תוצאות ניתוח</title>
+  <link rel="stylesheet" href="foodshazam-information.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="container">
+    <h2>תוצאות ניתוח המנה</h2>
+
+    <!-- תמונה -->
+    <div class="image-preview">
+      <img id="scanned-image" src="" style="max-width: 200px; border-radius: 8px;" />
+    </div>
+
+    <!-- מרכיבים -->
+    <h3>מרכיבים שזוהו:</h3>
+    <ul id="ingredients-list"></ul>
+
+    <!-- סיכום קלוריות -->
+    <div id="calories-summary" class="hidden">
+      <p><strong>סה״כ קלוריות במנה:</strong> <span id="total-calories">0</span> קק"ל</p>
+    </div>
+
+    <!-- אלרגנים -->
+    <div id="allergy-warning" class="hidden">
+      <h3>⚠️ אלרגנים שנמצאו:</h3>
+      <ul id="allergens-list"></ul>
+    </div>
+
+    <div id="no-allergens" class="hidden">
+      <p>✅ לא נמצאו אלרגנים תואמים לרשימת האלרגיות שלך.</p>
+    </div>
+
+    <a href="foodshazam-scan.html" class="back-button">חזרה לסריקה</a>
+  </div>
+  <!-- תפריט תחתון -->
+  <nav class="bottom-nav">
+    <a href="foodshazma-home.html">
+      <img src="home.png" alt="בית">
+      <span>דף הבית</span>
+    </a>
+    <a href="foodshazam-scan.html">
+      <img src="scan.png" alt="סריקה">
+      <span>סריקה</span>
+    </a>
+    <a href="foodshazam-history.html" class="active">
+      <img src="history.png" alt="היסטוריה">
+      <span>היסטוריה</span>
+    </a>
+    <a href="foodshazam-signup.html">
+      <img src="signup.png" alt="פרופיל">
+      <span>הרשמה/פרופיל</span>
+    </a>
+  </nav>
+
+  <script>
+    const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
+    const userAllergies = JSON.parse(sessionStorage.getItem('userAllergies') || '[]');
+    const imageUrl = sessionStorage.getItem('imageUrl') || '';
+
+    const ingredientsList = document.getElementById('ingredients-list');
+    const allergensList = document.getElementById('allergens-list');
+    const allergyWarning = document.getElementById('allergy-warning');
+    const noAllergens = document.getElementById('no-allergens');
+    const totalCaloriesSection = document.getElementById('calories-summary');
+    const totalCaloriesElement = document.getElementById('total-calories');
+    const scannedImage = document.getElementById('scanned-image');
+
+    if (imageUrl) scannedImage.src = imageUrl;
+
+    // מילון סינונימים לאלרגיות
+    const allergenSynonyms = {
+      "שומשום": ["שומשום", "sesame", "sesame seeds"],
+      "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
+      "חלב": ["חלב", "milk", "dairy", "lactose"],
+      "סויה": ["סויה", "soy", "soybeans", "soy sauce"],
+      "ביצים": ["ביצים", "eggs", "egg"],
+      "גלוטן": ["גלוטן", "gluten", "wheat"],
+      "שקדים": ["שקדים", "almonds", "almond"],
+      "אגוזים": ["אגוזים", "nuts", "walnuts", "pecan", "cashew", "hazelnut"],
+      "דגים": ["דגים", "fish", "salmon", "tuna"],
+      "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
+    };
+
+    let totalCalories = 0;
+    const detectedAllergens = [];
+
+    ingredients.forEach(item => {
+      const name = item.name || item;
+      const calories = item.calories || 0;
+      totalCalories += +calories;
+
+      const li = document.createElement('li');
+      li.textContent = `${name}: ${calories} קלוריות`;
+
+      const nameNorm = name.toLowerCase();
+
+      userAllergies.forEach(userAllergy => {
+        const allergyNorm = userAllergy.toLowerCase();
+
+        // קבל רשימת סינונימים - אם לא קיימת, בדוק רק מול השם עצמו
+        const synonyms = Object.values(allergenSynonyms).find(list =>
+          list.map(s => s.toLowerCase()).includes(allergyNorm)
+        ) || [allergyNorm];
+
+        if (synonyms.some(syn => nameNorm.includes(syn))) {
+          li.style.color = 'red';
+          li.style.fontWeight = 'bold';
+
+          if (!detectedAllergens.includes(userAllergy)) {
+            detectedAllergens.push(userAllergy);
+          }
+        }
+      });
+
+      ingredientsList.appendChild(li);
+    });
+
+    totalCaloriesElement.textContent = totalCalories;
+    totalCaloriesSection.classList.remove('hidden');
+
+    if (detectedAllergens.length > 0) {
+      allergyWarning.classList.remove('hidden');
+      noAllergens.classList.add('hidden');
+
+      detectedAllergens.forEach(a => {
+        const li = document.createElement('li');
+        li.textContent = a;
+        allergensList.appendChild(li);
+      });
+    } else {
+      allergyWarning.classList.add('hidden');
+      noAllergens.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

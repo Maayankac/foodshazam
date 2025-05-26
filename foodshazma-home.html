@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Shazam - גלה את עולם הטעמים</title>
+  <link rel="stylesheet" href="foodshazam-home.css">
+  <link rel="stylesheet" href="foodshazam.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="logoutButton" class="logout-button"> התנתק 👋</button>
+
+  <!-- גוף הדף -->
+  <section class="home-section">
+    <div class="content-container">
+      <div class="home-image">
+        <img src="logo.jpg" alt="Food Shazam Logo" class="pulse">
+      </div>
+      
+      <h1>ברוכים הבאים ל-Food Shazam!</h1>
+      <h2 id="welcomeMessage">שלום!</h2>
+      <p>גלו מאכלים בלחיצת כפתור, נהלו את ההעדפות התזונתיות שלכם וצאו למסע קולינרי מרתק בעולם הטעמים.</p>
+      
+      <div class="buttons">
+        <a href="foodshazam-login.html">
+          <button class="primary-button">התחברות</button>
+        </a>
+        <a href="foodshazam-signup.html">
+          <button class="primary-button">הרשמה</button>
+        </a>
+      </div>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📸</div>
+          <h3>זיהוי מזון</h3>
+          <p>סרקו מנה וקבלו מידע מפורט</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🥗</div>
+          <h3>מידע תזונתי</h3>
+          <p>ערכים תזונתיים וקלוריות</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>מעקב צריכה</h3>
+          <p>עקבו אחר הארוחות שלכם</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="bottom-nav">
+    <a href="foodshazma-home.html" class="active">
+      <img src="home.png" alt="בית">
+      <span>בית</span>
+    </a>
+    <a href="foodshazam-scan.html">
+      <img src="scan.png" alt="סריקה">
+      <span>סריקה</span>
+    </a>
+    <a href="foodshazam-history.html">
+      <img src="history.png" alt="היסטוריה">
+      <span>היסטוריה</span>
+    </a>
+    <a href="foodshazam-signup.html">
+      <img src="signup.png" alt="פרופיל">
+      <span>הרשמה/פרופיל</span>
+    </a>
+  </nav>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="foodshazam-home.js"></script>
+</body>
+</html>

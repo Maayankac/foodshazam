@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShazma - סריקת מזון</title>
+    <link rel="stylesheet" href="foodshazam-information.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+</head>
+<body>
+    <div class="scan-container">
+        <h2>סריקת מנה</h2>
+        
+        <div id="upload-section">
+            <div id="upload-box" class="upload-box">
+                <img src="upload-icon.svg" alt="העלאת תמונה" id="upload-icon">
+                <p>לחץ או גרור תמונה לכאן</p>
+                <span>לסריקת המנה והמרכיבים שלה</span>
+                <input type="file" id="file-input" accept="image/*" capture="environment">
+            </div>
+            <button id="capture-button" class="camera-button">
+                <img src="camera-icon.svg" alt="צלם תמונה">
+                צלם תמונה
+            </button>
+        </div>
+
+        <div id="preview-section" class="hidden">
+            <div class="preview-container">
+                <img id="preview-image" src="#" alt="תמונת המנה">
+                <div class="preview-controls">
+                    <button id="retake-button">צלם שוב</button>
+                    <button id="analyze-button">סרוק את המנה</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-section" class="hidden">
+            <div class="loading-spinner"></div>
+            <p>מזהה את המנה...</p>
+        </div>
+
+        <div id="results-section" class="hidden">
+            <div class="food-info">
+                <h3 id="food-name">שם המנה</h3>
+                
+                <div class="nutrition-container">
+                    <div class="nutrition-item">
+                        <span class="nutrition-value" id="calories-value">0</span>
+                        <span class="nutrition-label">קלוריות</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-value" id="protein-value">0</span>
+                        <span class="nutrition-label">חלבון (גרם)</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-value" id="carbs-value">0</span>
+                        <span class="nutrition-label">פחמימות (גרם)</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-value" id="fat-value">0</span>
+                        <span class="nutrition-label">שומן (גרם)</span>
+                    </div>
+                </div>
+
+                <div class="ingredients-section">
+                    <h4>מרכיבים:</h4>
+                    <ul id="ingredients-list"></ul>
+                </div>
+
+                <div id="allergies-warning" class="allergy-warning hidden">
+                    <h4>שים לב! מכיל אלרגנים:</h4>
+                    <ul id="allergies-detected-list"></ul>
+                </div>
+
+                <button id="save-meal-button">שמור ארוחה</button>
+            </div>
+        </div>
+
+        <div id="messageBox" class="hidden"></div>
+    </div>
+
+    <!-- תפריט תחתון -->
+    <nav class="bottom-nav">
+        <a href="foodshazma-home.html">
+            <img src="home-icon.svg" alt="בית">
+            <span>בית</span>
+        </a>
+        <a href="scan-food.html" class="active">
+            <img src="scan-icon.svg" alt="סריקה">
+            <span>סריקה</span>
+        </a>
+        <a href="food-history.html">
+            <img src="history-icon.svg" alt="היסטוריה">
+            <span>היסטוריה</span>
+        </a>
+        <a href="profile.html">
+            <img src="profile-icon.svg" alt="פרופיל">
+            <span>פרופיל</span>
+        </a>
+    </nav>
+
+    <script src="foodshazam-information.js"></script>
+</body>
+</html>
