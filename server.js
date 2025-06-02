@@ -26,6 +26,8 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file?.path;
   try {
     if (!imagePath) throw new Error('קובץ תמונה לא סופק.');
+    const userId = req.body.user_id;
+    if (!userId) throw new Error('לא סופק user_id בבקשה.');
 
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
@@ -67,9 +69,6 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const totalCalories = ingredientsList.reduce((sum, item) => sum + (item.calories || 0), 0);
 
-    const userId = req.body.user_id;
-    if (!userId) throw new Error('לא סופק user_id בבקשה.');
-
     const { data: allergiesData, error: allergiesError } = await supabase
       .from('users')
       .select('allergies')
@@ -77,13 +76,12 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       .single();
 
     if (allergiesError) throw allergiesError;
-
     const userAllergies = allergiesData?.allergies || [];
+
     const foundAllergens = ingredientsList.filter(ingredient =>
       userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
 
-    // ⬇️⬇️ הוספת העלאת תמונה ל-Supabase Storage
     const fileName = `food_${Date.now()}.jpg`;
     const { error: uploadError } = await supabase.storage.from('images').upload(fileName, imageBuffer, {
       contentType: 'image/jpeg'
@@ -92,7 +90,6 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
 
-    // ⬇️⬇️ הוספת שמירה להיסטוריה
     const { error: historyError } = await supabase.from('history').insert({
       user_id: userId,
       image_url: imageUrl,
