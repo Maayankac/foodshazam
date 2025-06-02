@@ -16,6 +16,10 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+const path = require('path');
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'foodshazma-home.html'));
+});
 
 app.post('/analyze-image', upload.single('image'), async (req, res) => {
   try {
