@@ -4,10 +4,12 @@ const { createClient } = require('@supabase/supabase-js');
 const { OpenAI } = require('openai');
 const multer = require('multer');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 const port = process.env.PORT || 3000;
+
 app.use(express.static(__dirname));
 
 // התחברות ל-Supabase
@@ -17,16 +19,18 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-const path = require('path');
+
+// דף הבית
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'foodshazma-home.html'));
 });
 
+// ניתוח תמונה
 app.post('/analyze-image', upload.single('image'), async (req, res) => {
+  const imagePath = req.file?.path;
   try {
-    const imagePath = req.file.path;
+    if (!imagePath) throw new Error('קובץ תמונה לא סופק.');
 
-    // 1. שליחת התמונה ל-GPT
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
 
@@ -36,7 +40,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
         {
           role: "user",
           content: [
-            { type: "text", text: "מהם המרכיבים במנה הזו? תן לי רשימה של מרכיבים בלבד." },
+            { type: "text", text: "מהם המרכיבים במנה הזו? תן לי רשימה של מרכיבים בלבד כולל כמויות בקלוריות אם ידוע." },
             {
               type: "image_url",
               image_url: {
@@ -46,61 +50,64 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
           ],
         }
       ],
-      max_tokens: 300,
+      max_tokens: 1000,
     });
 
-    const gptResponseText = completion.choices[0].message.content;
+    const gptResponseText = completion.choices[0].message.content || '';
     console.log("🔎 טקסט מ-GPT:", gptResponseText);
-    
-    // חיפוש מבנה JSON בתוך הטקסט
+
+    // ניתוח טקסט ל-ingredients
     let ingredientsList = [];
     try {
       const jsonMatch = gptResponseText.match(/\[[\s\S]*?\]/);
       if (jsonMatch) {
         ingredientsList = JSON.parse(jsonMatch[0]);
       } else {
-        // fallback: פירוק שורות אם אין JSON
-        ingredientsList = gptResponseText
-          .split('\n')
-          .map(item => ({
-            name: item.replace(/^\-|\d+\.?/, '').trim(),
-            calories: null,
-            confidence: 'maybe'
-          }))
-          .filter(i => i.name);
+        ingredientsList = gptResponseText.split('\n').map(line => {
+          const match = line.match(/(.+?)([:\-]\s*(\d+)\s*calories)?/i);
+          return {
+            name: match ? match[1].trim() : line.trim(),
+            calories: match && match[3] ? parseInt(match[3]) : null,
+            confidence: line.includes('אופציונלי') || line.includes('אפשרי') ? 'low' : 'high'
+          };
+        }).filter(i => i.name);
       }
     } catch (error) {
       console.warn('⚠️ שגיאה בפענוח JSON:', error);
-      ingredientsList = [];
     }
-    
 
-    // 2. שליפת אלרגיות המשתמש
+    // שליפת אלרגיות מהמשתמש
+    const userId = req.body.user_id;
+    if (!userId) throw new Error('לא סופק user_id בבקשה.');
+
     const { data: allergiesData, error: allergiesError } = await supabase
       .from('users')
       .select('allergies')
-      .eq('id', req.body.user_id)
+      .eq('id', userId)
       .single();
 
     if (allergiesError) throw allergiesError;
 
-    const userAllergies = allergiesData.allergies || [];
-
-    // 3. השוואה לאלרגנים
+    const userAllergies = allergiesData?.allergies || [];
     const foundAllergens = ingredientsList.filter(ingredient =>
-      userAllergies.some(allergy => ingredient.toLowerCase().includes(allergy.toLowerCase()))
+      userAllergies.some(allergy =>
+        ingredient.name.toLowerCase().includes(allergy.toLowerCase())
+      )
     );
 
-    // 4. החזרת תוצאה ללקוח
+    // תשובה ללקוח
     res.json({
       ingredients: ingredientsList,
-      allergens: foundAllergens,
+      allergens: foundAllergens
     });
 
-    fs.unlinkSync(imagePath); // מחיקת הקובץ אחרי שימוש
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'שגיאה בניתוח התמונה' });
+    console.error('❌ שגיאה:', err);
+    res.status(500).json({ error: err.message || 'שגיאה בניתוח התמונה' });
+  } finally {
+    if (imagePath && fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
   }
 });
 
