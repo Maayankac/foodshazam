@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // התחברות ל-Supabase
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
