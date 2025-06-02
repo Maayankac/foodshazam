@@ -82,6 +82,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
 
+    // העלאת תמונה ל-Supabase Storage
     const fileName = `food_${Date.now()}.jpg`;
     const { error: uploadError } = await supabase.storage.from('images').upload(fileName, imageBuffer, {
       contentType: 'image/jpeg'
@@ -90,17 +91,24 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
 
+    // שמירת היסטוריה ב-Supabase
     const { error: historyError } = await supabase.from('history').insert({
       user_id: userId,
       image_url: imageUrl,
-      ingredients: ingredientsList,
+      ingredients: JSON.stringify(ingredientsList), // שמירה כ-JSON (אם השדה מוגדר כ-text)
       total_calories: totalCalories,
-      allergens: foundAllergens,
+      allergens: JSON.stringify(foundAllergens), // שמירה כ-JSON
       created_at: new Date().toISOString()
     });
     if (historyError) console.error('❌ שגיאה בשמירת היסטוריה:', historyError);
 
- res.json({ ingredients: ingredientsList, totalCalories, allergens: foundAllergens, imageUrl });
+    // החזרת תוצאה ללקוח כולל imageUrl
+    res.json({
+      ingredients: ingredientsList,
+      totalCalories,
+      allergens: foundAllergens,
+      imageUrl
+    });
 
   } catch (err) {
     console.error('❌ שגיאה:', err);
