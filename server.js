@@ -12,10 +12,10 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static(__dirname));
 
-// התחברות ל-Supabase
+// Supabase התחברות עם Service Role Key
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-// התחברות ל-OpenAI
+// OpenAI התחברות
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.get('/', (req, res) => {
@@ -26,12 +26,14 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file?.path;
   try {
     if (!imagePath) throw new Error('קובץ תמונה לא סופק.');
+    
     const userId = req.body.user_id;
     if (!userId) throw new Error('לא סופק user_id בבקשה.');
 
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
 
+    // שליחת תמונה ל-OpenAI לקבלת מרכיבים
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -69,6 +71,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const totalCalories = ingredientsList.reduce((sum, item) => sum + (item.calories || 0), 0);
 
+    // שליפת אלרגיות המשתמש
     const { data: allergiesData, error: allergiesError } = await supabase
       .from('users')
       .select('allergies')
@@ -78,6 +81,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     if (allergiesError) throw allergiesError;
     const userAllergies = allergiesData?.allergies || [];
 
+    // מציאת אלרגנים במנה
     const foundAllergens = ingredientsList.filter(ingredient =>
       userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
@@ -95,14 +99,14 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     const { error: historyError } = await supabase.from('history').insert({
       user_id: userId,
       image_url: imageUrl,
-      ingredients: JSON.stringify(ingredientsList), // שמירה כ-JSON (אם השדה מוגדר כ-text)
+      ingredients: ingredientsList, // jsonb
       total_calories: totalCalories,
-      allergens: JSON.stringify(foundAllergens), // שמירה כ-JSON
+      allergens: foundAllergens,   // jsonb
       created_at: new Date().toISOString()
     });
     if (historyError) console.error('❌ שגיאה בשמירת היסטוריה:', historyError);
 
-    // החזרת תוצאה ללקוח כולל imageUrl
+    // החזרת הנתונים ללקוח
     res.json({
       ingredients: ingredientsList,
       totalCalories,
