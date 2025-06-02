@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { ingredients, allergens, totalCalories } = await response.json();
             sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
             sessionStorage.setItem('allergens', JSON.stringify(allergens));
+            sessionStorage.setItem('imageUrl', imageUrl); // שומר את כתובת התמונה
             sessionStorage.setItem('totalCalories', totalCalories);
             window.location.href = 'foodshazam-results.html';
         } catch (e) {
