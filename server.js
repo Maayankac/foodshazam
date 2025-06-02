@@ -49,11 +49,31 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       max_tokens: 300,
     });
 
-    const ingredientsText = completion.choices[0].message.content;
-    const ingredientsList = ingredientsText
-      .split('\n')
-      .map(item => item.replace(/^\-|\d+\.?/, '').trim())
-      .filter(Boolean);
+    const gptResponseText = completion.choices[0].message.content;
+    console.log("🔎 טקסט מ-GPT:", gptResponseText);
+    
+    // חיפוש מבנה JSON בתוך הטקסט
+    let ingredientsList = [];
+    try {
+      const jsonMatch = gptResponseText.match(/\[[\s\S]*?\]/);
+      if (jsonMatch) {
+        ingredientsList = JSON.parse(jsonMatch[0]);
+      } else {
+        // fallback: פירוק שורות אם אין JSON
+        ingredientsList = gptResponseText
+          .split('\n')
+          .map(item => ({
+            name: item.replace(/^\-|\d+\.?/, '').trim(),
+            calories: null,
+            confidence: 'maybe'
+          }))
+          .filter(i => i.name);
+      }
+    } catch (error) {
+      console.warn('⚠️ שגיאה בפענוח JSON:', error);
+      ingredientsList = [];
+    }
+    
 
     // 2. שליפת אלרגיות המשתמש
     const { data: allergiesData, error: allergiesError } = await supabase
