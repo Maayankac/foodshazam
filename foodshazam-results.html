@@ -21,7 +21,7 @@
 
     <!-- סיכום קלוריות -->
     <div id="calories-summary" class="hidden">
-      <p><strong>סה״כ קלוריות במנה:</strong> <span id="total-calories">0</span> קק"ל</p>
+      <p><strong>סה"כ קלוריות במנה:</strong> <span id="total-calories">0</span> קק"ל</p>
     </div>
 
     <!-- אלרגנים -->
@@ -29,13 +29,13 @@
       <h3>⚠️ אלרגנים שנמצאו:</h3>
       <ul id="allergens-list"></ul>
     </div>
-
     <div id="no-allergens" class="hidden">
       <p>✅ לא נמצאו אלרגנים תואמים לרשימת האלרגיות שלך.</p>
     </div>
 
     <a href="foodshazam-scan.html" class="back-button">חזרה לסריקה</a>
   </div>
+
   <!-- תפריט תחתון -->
   <nav class="bottom-nav">
     <a href="foodshazma-home.html">
@@ -60,14 +60,15 @@
     const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
     const userAllergies = JSON.parse(sessionStorage.getItem('userAllergies') || '[]');
     const imageUrl = sessionStorage.getItem('imageUrl') || '';
+    const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
 
-    const ingredientsList = document.getElementById('ingredients-list');
-    const allergensList = document.getElementById('allergens-list');
-    const allergyWarning = document.getElementById('allergy-warning');
-    const noAllergens = document.getElementById('no-allergens');
-    const totalCaloriesSection = document.getElementById('calories-summary');
-    const totalCaloriesElement = document.getElementById('total-calories');
     const scannedImage = document.getElementById('scanned-image');
+    const ingredientsListEl = document.getElementById('ingredients-list');
+    const totalCaloriesEl = document.getElementById('total-calories');
+    const caloriesSummaryEl = document.getElementById('calories-summary');
+    const allergensListEl = document.getElementById('allergens-list');
+    const allergyWarningEl = document.getElementById('allergy-warning');
+    const noAllergensEl = document.getElementById('no-allergens');
 
     if (imageUrl) scannedImage.src = imageUrl;
 
@@ -85,23 +86,19 @@
       "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
     };
 
-    let totalCalories = 0;
-    const detectedAllergens = [];
+    let detectedAllergens = [];
 
+    ingredientsListEl.innerHTML = '';
     ingredients.forEach(item => {
       const name = item.name || item;
       const calories = item.calories || 0;
-      totalCalories += +calories;
 
       const li = document.createElement('li');
       li.textContent = `${name}: ${calories} קלוריות`;
 
       const nameNorm = name.toLowerCase();
-
       userAllergies.forEach(userAllergy => {
         const allergyNorm = userAllergy.toLowerCase();
-
-        // קבל רשימת סינונימים - אם לא קיימת, בדוק רק מול השם עצמו
         const synonyms = Object.values(allergenSynonyms).find(list =>
           list.map(s => s.toLowerCase()).includes(allergyNorm)
         ) || [allergyNorm];
@@ -109,31 +106,32 @@
         if (synonyms.some(syn => nameNorm.includes(syn))) {
           li.style.color = 'red';
           li.style.fontWeight = 'bold';
-
           if (!detectedAllergens.includes(userAllergy)) {
             detectedAllergens.push(userAllergy);
           }
         }
       });
 
-      ingredientsList.appendChild(li);
+      ingredientsListEl.appendChild(li);
     });
 
-    totalCaloriesElement.textContent = totalCalories;
-    totalCaloriesSection.classList.remove('hidden');
+    if (ingredients.length > 0) {
+      caloriesSummaryEl.classList.remove('hidden');
+      totalCaloriesEl.textContent = totalCalories;
+    }
 
     if (detectedAllergens.length > 0) {
-      allergyWarning.classList.remove('hidden');
-      noAllergens.classList.add('hidden');
-
-      detectedAllergens.forEach(a => {
+      allergyWarningEl.classList.remove('hidden');
+      noAllergensEl.classList.add('hidden');
+      allergensListEl.innerHTML = '';
+      detectedAllergens.forEach(allergy => {
         const li = document.createElement('li');
-        li.textContent = a;
-        allergensList.appendChild(li);
+        li.textContent = allergy;
+        allergensListEl.appendChild(li);
       });
     } else {
-      allergyWarning.classList.add('hidden');
-      noAllergens.classList.remove('hidden');
+      allergyWarningEl.classList.add('hidden');
+      noAllergensEl.classList.remove('hidden');
     }
   </script>
 </body>
