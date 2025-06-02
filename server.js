@@ -10,21 +10,20 @@ const app = express();
 const upload = multer({ dest: 'uploads/' });
 const port = process.env.PORT || 3000;
 
-// התחברות ל-Supabase
+app.use(express.static(__dirname));
+
+// התחברות ל-Supabase עם Service Role Key
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 // התחברות ל-OpenAI
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// הגדרות סטטיות
-app.use(express.static(__dirname));
 
 // דף הבית
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'foodshazma-home.html'));
 });
 
-// ניתוח תמונה ושמירה להיסטוריה
+// ניתוח תמונה
 app.post('/analyze-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file?.path;
   try {
@@ -33,7 +32,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
 
-    // קריאה ל-OpenAI
+    // שליחת תמונה ל-GPT לזיהוי מרכיבים
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -41,11 +40,8 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
           role: "user",
           content: [
             { type: "text", text: "מהם המרכיבים במנה הזו? תן לי רשימה בפורמט JSON של [{\"name\": \"רכיב\", \"calories\": 100, \"confidence\": \"high\"}]" },
-            {
-              type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${base64Image}` },
-            },
-          ],
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+          ]
         }
       ],
       max_tokens: 1000,
@@ -54,7 +50,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     const gptResponseText = completion.choices[0].message.content || '';
     console.log("🔎 טקסט מ-GPT:", gptResponseText);
 
-    // ניתוח התוצאה
+    // ניתוח JSON או fallback לטקסט
     let ingredientsList = [];
     try {
       const jsonMatch = gptResponseText.match(/\[[\s\S]*?\]/);
@@ -78,7 +74,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const totalCalories = ingredientsList.reduce((sum, item) => sum + (item.calories || 0), 0);
 
-    // שליפת אלרגיות למשתמש
+    // שליפת אלרגיות מהמשתמש
     const userId = req.body.user_id;
     if (!userId) throw new Error('לא סופק user_id בבקשה.');
 
@@ -89,20 +85,26 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       .single();
 
     if (allergiesError) throw allergiesError;
-    const userAllergies = allergiesData?.allergies || [];
 
+    const userAllergies = allergiesData?.allergies || [];
     const foundAllergens = ingredientsList.filter(ingredient =>
       userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
 
-    // העלאת תמונה ל-Supabase Storage
-    const fileName = `food_${Date.now()}.jpg`;
-    const { error: uploadError } = await supabase.storage.from('images').upload(fileName, imageBuffer);
-    if (uploadError) console.warn('⚠️ שגיאה בהעלאת תמונה:', uploadError);
+    // 🔄 העלאת התמונה ל-Supabase Storage עם contentType
+    const fileName = `images/food_${Date.now()}.jpg`; // שים לב לנתיב
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(fileName, imageBuffer, { contentType: 'image/jpeg' });
 
-    const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
+    if (uploadError) {
+      console.error('⚠️ שגיאה בהעלאת תמונה:', uploadError);
+      return res.status(500).json({ error: 'שגיאה בהעלאת תמונה', details: uploadError });
+    }
 
-    // שמירת היסטוריה ל-DB
+    const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${fileName}`;
+
+    // 📥 שמירת ההיסטוריה ב-DB
     const { error: historyError } = await supabase.from('history').insert({
       user_id: userId,
       image_url: imageUrl,
@@ -114,12 +116,8 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     if (historyError) console.error('❌ שגיאה בשמירת היסטוריה:', historyError);
 
-    // החזרת תוצאה ללקוח
-    res.json({
-      ingredients: ingredientsList,
-      totalCalories,
-      allergens: foundAllergens
-    });
+    // תשובה ללקוח
+    res.json({ ingredients: ingredientsList, totalCalories, allergens: foundAllergens });
 
   } catch (err) {
     console.error('❌ שגיאה:', err);
@@ -129,7 +127,6 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
   }
 });
 
-// הרצת השרת
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
 });
