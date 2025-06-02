@@ -25,7 +25,6 @@ let stream, cameraActive = false, imageBlob = null, userAllergies = [];
   }
 })();
 
-// פונקציות אלרגיות
 async function fetchUserAllergies(userId) {
   const { data, error } = await supabase.from('users').select('allergies').eq('id', userId).maybeSingle();
   userAllergies = (error || !data?.allergies) ? [] : data.allergies;
@@ -82,7 +81,7 @@ fileInput?.addEventListener('change', () => {
   }
 });
 
-// שליחת תמונה לשרת
+// שליחת תמונה לשרת, קבלת תוצאות, שמירה, ומעבר
 async function processImageAndRedirect(blob) {
   showLoading();
   const fileName = `food_${Date.now()}.jpg`;
@@ -101,13 +100,17 @@ async function processImageAndRedirect(blob) {
     if (!response.ok) throw new Error('שגיאה מהשרת');
     const { ingredients, allergens, totalCalories } = await response.json();
 
-    // שמירה ב-sessionStorage
     sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
     sessionStorage.setItem('allergens', JSON.stringify(allergens));
     sessionStorage.setItem('totalCalories', totalCalories);
 
-    // מעבר לעמוד התוצאות
+    // שמירה להיסטוריה לפני מעבר
+    await saveScanToHistory({ imageUrl, ingredients, totalCalories, allergens });
+
+    // מעבר לעמוד התוצאות (או היסטוריה אם תרצה)
     window.location.href = 'foodshazam-results.html';
+    // אם מעוניין למעבר להיסטוריה: window.location.href = 'foodshazam-history.html';
+
   } catch (e) {
     showMessage('שגיאה כללית. נסה שוב.', 'error');
   } finally {
@@ -115,11 +118,35 @@ async function processImageAndRedirect(blob) {
   }
 }
 
-// Utility פונקציות
+// פונקציות שירות
 function showLoading() { loadingSection?.classList.remove('hidden'); }
 function hideLoading() { loadingSection?.classList.add('hidden'); }
 function showMessage(text, type) {
   messageBox.textContent = text;
   messageBox.className = type === 'error' ? 'error' : 'success';
   messageBox.classList.remove('hidden');
+}
+
+async function saveScanToHistory({ imageUrl, ingredients, totalCalories, allergens }) {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.warn('משתמש לא מחובר, לא שומר היסטוריה');
+    return;
+  }
+
+  const timestamp = new Date().toISOString();
+  const { error } = await supabase.from('history').insert({
+    user_id: user.id,
+    image_url: imageUrl,
+    ingredients,
+    total_calories: totalCalories,
+    allergens,
+    timestamp
+  });
+
+  if (error) {
+    console.error('שגיאה בשמירת ההיסטוריה:', error.message);
+  } else {
+    console.log('✅ סריקה נשמרה בהצלחה להיסטוריה');
+  }
 }
