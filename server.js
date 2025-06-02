@@ -1,4 +1,30 @@
-// ניתוח תמונה
+require('dotenv').config();
+const express = require('express');
+const { createClient } = require('@supabase/supabase-js');
+const { OpenAI } = require('openai');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const upload = multer({ dest: 'uploads/' });
+const port = process.env.PORT || 3000;
+
+// התחברות ל-Supabase
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+// התחברות ל-OpenAI
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// הגדרות סטטיות
+app.use(express.static(__dirname));
+
+// דף הבית
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'foodshazma-home.html'));
+});
+
+// ניתוח תמונה ושמירה להיסטוריה
 app.post('/analyze-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file?.path;
   try {
@@ -7,6 +33,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
 
+    // קריאה ל-OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -27,7 +54,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     const gptResponseText = completion.choices[0].message.content || '';
     console.log("🔎 טקסט מ-GPT:", gptResponseText);
 
-    // ניתוח טקסט ל-ingredients
+    // ניתוח התוצאה
     let ingredientsList = [];
     try {
       const jsonMatch = gptResponseText.match(/\[[\s\S]*?\]/);
@@ -51,6 +78,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const totalCalories = ingredientsList.reduce((sum, item) => sum + (item.calories || 0), 0);
 
+    // שליפת אלרגיות למשתמש
     const userId = req.body.user_id;
     if (!userId) throw new Error('לא סופק user_id בבקשה.');
 
@@ -61,31 +89,32 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       .single();
 
     if (allergiesError) throw allergiesError;
-
     const userAllergies = allergiesData?.allergies || [];
+
     const foundAllergens = ingredientsList.filter(ingredient =>
       userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
 
-    // ⬇️⬇️ הוספת שמירה להיסטוריה
+    // העלאת תמונה ל-Supabase Storage
     const fileName = `food_${Date.now()}.jpg`;
     const { error: uploadError } = await supabase.storage.from('images').upload(fileName, imageBuffer);
     if (uploadError) console.warn('⚠️ שגיאה בהעלאת תמונה:', uploadError);
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
 
+    // שמירת היסטוריה ל-DB
     const { error: historyError } = await supabase.from('history').insert({
       user_id: userId,
       image_url: imageUrl,
       ingredients: ingredientsList,
       total_calories: totalCalories,
       allergens: foundAllergens,
-      created_at: new Date().toISOString() // אופציונלי
+      created_at: new Date().toISOString()
     });
 
     if (historyError) console.error('❌ שגיאה בשמירת היסטוריה:', historyError);
 
-    // תשובה ללקוח
+    // החזרת תוצאה ללקוח
     res.json({
       ingredients: ingredientsList,
       totalCalories,
@@ -98,4 +127,9 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
   } finally {
     if (imagePath && fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
   }
+});
+
+// הרצת השרת
+app.listen(port, () => {
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });
