@@ -561,6 +561,7 @@ h1 {
 .hidden {
     display: none !important;
   }
+
   
 /* תיקונים למובייל */
 @media (max-width: 400px) {
