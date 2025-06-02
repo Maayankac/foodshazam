@@ -13,9 +13,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let stream, cameraActive = false, imageBlob = null;
 
-    // קבלת משתמש מחובר
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) sessionStorage.setItem('userId', user.id);
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+        showMessage('לא זוהה משתמש מחובר. נא להתחבר מחדש.', 'error');
+        return;
+    }
+    sessionStorage.setItem('userId', user.id);
 
     cameraToggle?.addEventListener('click', async () => {
         if (!cameraActive) {
@@ -66,22 +69,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function processImageAndRedirect(blob) {
         showLoading();
+        const userId = sessionStorage.getItem('userId');
+        if (!userId) {
+            showMessage('משתמש לא מחובר. יש להתחבר מחדש.', 'error');
+            hideLoading();
+            return;
+        }
         const formData = new FormData();
         formData.append('image', blob);
-        formData.append('user_id', sessionStorage.getItem('userId'));
-
+        formData.append('user_id', userId);
         try {
             const response = await fetch('/analyze-image', { method: 'POST', body: formData });
             if (!response.ok) throw new Error('שגיאה מהשרת');
             const { ingredients, allergens, totalCalories } = await response.json();
-
             sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
             sessionStorage.setItem('allergens', JSON.stringify(allergens));
             sessionStorage.setItem('totalCalories', totalCalories);
-
             window.location.href = 'foodshazam-results.html';
         } catch (e) {
-            showMessage('שגיאה כללית', 'error');
+            showMessage(e.message || 'שגיאה כללית', 'error');
         } finally {
             hideLoading();
         }
