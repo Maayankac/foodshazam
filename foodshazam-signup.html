@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <link id="dynamic-style" rel="stylesheet" href="" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="foodshazam-profile.js"></script>
 </head>
 <body class="signup-page">
   <div id="auth-container"></div>
@@ -22,79 +21,74 @@
   </nav>
 
   <script>
-window._supabaseClient = window.supabase.createClient(
-    'https://kimdnostypcecnboxtyf.supabase.co',
+    window._supabaseClient = window.supabase.createClient(
+      'https://kimdnostypcecnboxtyf.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'
     );
 
     async function loadAuthPage() {
-        const { data: { user } } = await window._supabaseClient.auth.getUser();
-        const container = document.getElementById('auth-container');
+      const { data: { user }, error } = await window._supabaseClient.auth.getUser();
+      const container = document.getElementById('auth-container');
       const styleTag = document.getElementById('dynamic-style');
 
       if (user) {
-        styleTag.href = 'foodshazam-profil.css';
-        const waitForProfileFunction = () => {
-          if (typeof window.renderUserProfile === 'function') {
-            window.renderUserProfile(user);
-          } else {
-            setTimeout(waitForProfileFunction, 50);
-          }
-        };
-        waitForProfileFunction();
-      } else {
-        styleTag.href = 'foodshazam-signout.css';
-        container.innerHTML = `
-          <div class="form-container">
-            <h2>הצטרפו ל-FoodShazam</h2>
-            <form id="signupForm">
-              <input type="text" id="fullName" placeholder="שם מלא" required />
-              <input type="email" id="email" placeholder="כתובת אימייל" required />
-              <input type="password" id="password" placeholder="סיסמה (לפחות 6 תווים)" required />
-
-              <h3>העדפות תזונתיות</h3>
-              <select id="dietPreference" required>
-                <option value="">בחר את ההעדפה שלך</option>
-                <option value="vegan">טבעוני</option>
-                <option value="vegetarian">צמחוני</option>
-                <option value="omnivore">אוכל הכל</option>
-                <option value="kosher">כשר</option>
-                <option value="keto">קיטו</option>
-                <option value="lactose_free">רגישות ללקטוז</option>
-              </select>
-
-              <h3>רגישויות ואלרגיות</h3>
-              <div id="allergies-list">
-                <label><input type="checkbox" name="allergies" value="peanuts" /> בוטנים</label>
-                <label><input type="checkbox" name="allergies" value="gluten" /> גלוטן</label>
-                <label><input type="checkbox" name="allergies" value="milk" /> חלב</label>
-                <label><input type="checkbox" name="allergies" value="eggs" /> ביצים</label>
-                <label><input type="checkbox" name="allergies" value="soy" /> סויה</label>
-                <label><input type="checkbox" name="allergies" value="nuts" /> אגוזים</label>
-                <label><input type="checkbox" name="allergies" value="sesame" /> שומשום</label>
-                <label><input type="checkbox" name="allergies" value="fish" /> דגים</label>
-              </div>
-
-              <div class="add-allergy">
-                <input type="text" id="newAllergyInput" placeholder="הקלד אלרגיה נוספת" />
-                <button type="button" id="addAllergyButton">➕ הוסף</button>
-              </div>
-
-              <button type="submit">צור חשבון</button>
-            </form>
-
-            <div id="messageBox" class="hidden"></div>
-            <p>כבר יש לך חשבון? <a href="foodshazam-login.html">התחבר כאן</a></p>
-          </div>
-        `;
-
-        const script = document.createElement('script');
-        script.src = 'signup.js';
-        script.onload = () => {
-          if (typeof initSignupFormHandlers === 'function') initSignupFormHandlers();
-        };
-        document.body.appendChild(script);
+        // אם יש משתמש מחובר - מעביר לעמוד הפרופיל
+        window.location.href = 'foodshazam-profile.html'; // שנה לעמוד הפרופיל האמיתי שלך
+        return;
       }
+
+      // אם אין משתמש - מציג טופס הרשמה
+      styleTag.href = 'foodshazam-signout.css';
+      container.innerHTML = `
+        <div class="form-container">
+          <h2>הצטרפו ל-FoodShazam</h2>
+          <form id="signupForm">
+            <input type="text" id="fullName" placeholder="שם מלא" required />
+            <input type="email" id="email" placeholder="כתובת אימייל" required />
+            <input type="password" id="password" placeholder="סיסמה (לפחות 6 תווים)" required />
+
+            <h3>העדפות תזונתיות</h3>
+            <select id="dietPreference" required>
+              <option value="">בחר את ההעדפה שלך</option>
+              <option value="vegan">טבעוני</option>
+              <option value="vegetarian">צמחוני</option>
+              <option value="omnivore">אוכל הכל</option>
+              <option value="kosher">כשר</option>
+              <option value="keto">קיטו</option>
+              <option value="lactose_free">רגישות ללקטוז</option>
+            </select>
+
+            <h3>רגישויות ואלרגיות</h3>
+            <div id="allergies-list">
+              <label><input type="checkbox" name="allergies" value="peanuts" /> בוטנים</label>
+              <label><input type="checkbox" name="allergies" value="gluten" /> גלוטן</label>
+              <label><input type="checkbox" name="allergies" value="milk" /> חלב</label>
+              <label><input type="checkbox" name="allergies" value="eggs" /> ביצים</label>
+              <label><input type="checkbox" name="allergies" value="soy" /> סויה</label>
+              <label><input type="checkbox" name="allergies" value="nuts" /> אגוזים</label>
+              <label><input type="checkbox" name="allergies" value="sesame" /> שומשום</label>
+              <label><input type="checkbox" name="allergies" value="fish" /> דגים</label>
+            </div>
+
+            <div class="add-allergy">
+              <input type="text" id="newAllergyInput" placeholder="הקלד אלרגיה נוספת" />
+              <button type="button" id="addAllergyButton">➕ הוסף</button>
+            </div>
+
+            <button type="submit">צור חשבון</button>
+          </form>
+
+          <div id="messageBox" class="hidden"></div>
+          <p>כבר יש לך חשבון? <a href="foodshazam-login.html">התחבר כאן</a></p>
+        </div>
+      `;
+
+      const script = document.createElement('script');
+      script.src = 'signup.js';
+      script.onload = () => {
+        if (typeof initSignupFormHandlers === 'function') initSignupFormHandlers();
+      };
+      document.body.appendChild(script);
     }
 
     loadAuthPage();
