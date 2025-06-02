@@ -11,20 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('capture-canvas');
     const loadingSection = document.getElementById('loading-section');
 
-    let stream, cameraActive = false, imageBlob = null, userAllergies = [];
+    let stream, cameraActive = false, imageBlob = null;
 
     // קבלת משתמש מחובר
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-        sessionStorage.setItem('userId', user.id);
-        await fetchUserAllergies(user.id);
-    }
-
-    async function fetchUserAllergies(userId) {
-        const { data, error } = await supabase.from('users').select('allergies').eq('id', userId).maybeSingle();
-        userAllergies = (error || !data?.allergies) ? [] : data.allergies;
-        sessionStorage.setItem('userAllergies', JSON.stringify(userAllergies));
-    }
+    if (user) sessionStorage.setItem('userId', user.id);
 
     cameraToggle?.addEventListener('click', async () => {
         if (!cameraActive) {
@@ -75,13 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function processImageAndRedirect(blob) {
         showLoading();
-        const fileName = `food_${Date.now()}.jpg`;
-        const { error } = await supabase.storage.from('images').upload(fileName, blob);
-        if (error) return showMessage('שגיאה בהעלאת תמונה', 'error');
-
-        const imageUrl = `${supabase.storageUrl}/storage/v1/object/public/images/${fileName}`;
-        sessionStorage.setItem('imageUrl', imageUrl);
-
         const formData = new FormData();
         formData.append('image', blob);
         formData.append('user_id', sessionStorage.getItem('userId'));
@@ -95,20 +79,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             sessionStorage.setItem('allergens', JSON.stringify(allergens));
             sessionStorage.setItem('totalCalories', totalCalories);
 
-            await saveScanToHistory({ imageUrl, ingredients, totalCalories, allergens });
-
             window.location.href = 'foodshazam-results.html';
         } catch (e) {
             showMessage('שגיאה כללית', 'error');
         } finally {
             hideLoading();
         }
-    }
-
-    async function saveScanToHistory({ imageUrl, ingredients, totalCalories, allergens }) {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error || !user) return console.warn('משתמש לא מחובר');
-        await supabase.from('history').insert({ user_id: user.id, image_url: imageUrl, ingredients, total_calories: totalCalories, allergens });
     }
 
     function showLoading() { loadingSection?.classList.remove('hidden'); }
