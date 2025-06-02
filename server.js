@@ -8,25 +8,26 @@ const fs = require('fs');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 const port = process.env.PORT || 3000;
-app.use(express.static(__dirname));
 
-// התחברות ל-Supabase
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// התחברות ל-OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-const path = require('path');
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'foodshazma-home.html'));
-});
+app.use(express.json()); // הוספת json parser
 
 app.post('/analyze-image', upload.single('image'), async (req, res) => {
   try {
-    const imagePath = req.file.path;
+    const userId = req.body.user_id;
+    if (!userId) {
+      console.error('❌ חסר user_id בבקשה');
+      return res.status(400).json({ error: 'user_id is required' });
+    }
 
-    // 1. שליחת התמונה ל-GPT
+    const imagePath = req.file?.path;
+    if (!imagePath) {
+      console.error('❌ לא התקבלה תמונה');
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
 
@@ -37,50 +38,47 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
           role: "user",
           content: [
             { type: "text", text: "מהם המרכיבים במנה הזו? תן לי רשימה של מרכיבים בלבד." },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`,
-              },
-            },
-          ],
+            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Image}` } }
+          ]
         }
       ],
       max_tokens: 300,
     });
 
-    const ingredientsText = completion.choices[0].message.content;
-    const ingredientsList = ingredientsText
-      .split('\n')
-      .map(item => item.replace(/^\-|\d+\.?/, '').trim())
-      .filter(Boolean);
+    const ingredientsText = completion.choices[0]?.message?.content;
+    if (!ingredientsText) {
+      console.error('❌ לא התקבל טקסט מ-GPT');
+      return res.status(500).json({ error: 'No ingredients from GPT' });
+    }
 
-    // 2. שליפת אלרגיות המשתמש
+    const ingredientsList = ingredientsText.split('\n').map(item => item.replace(/^\-|\d+\.?/, '').trim()).filter(Boolean);
+
     const { data: allergiesData, error: allergiesError } = await supabase
       .from('users')
       .select('allergies')
-      .eq('id', req.body.user_id)
+      .eq('id', userId)
       .single();
 
-    if (allergiesError) throw allergiesError;
+    if (allergiesError) {
+      console.error('❌ שגיאה בשליפת אלרגיות:', allergiesError);
+      return res.status(500).json({ error: 'Error fetching user allergies' });
+    }
+
+    if (!allergiesData) {
+      console.error('❌ לא נמצאו נתוני משתמש עבור user_id:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     const userAllergies = allergiesData.allergies || [];
-
-    // 3. השוואה לאלרגנים
     const foundAllergens = ingredientsList.filter(ingredient =>
       userAllergies.some(allergy => ingredient.toLowerCase().includes(allergy.toLowerCase()))
     );
 
-    // 4. החזרת תוצאה ללקוח
-    res.json({
-      ingredients: ingredientsList,
-      allergens: foundAllergens,
-    });
-
-    fs.unlinkSync(imagePath); // מחיקת הקובץ אחרי שימוש
+    res.json({ ingredients: ingredientsList, allergens: foundAllergens });
+    fs.unlinkSync(imagePath); // ניקוי הקובץ
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'שגיאה בניתוח התמונה' });
+    console.error('❌ שגיאה בשרת:', err);
+    res.status(500).json({ error: 'שגיאה פנימית בשרת' });
   }
 });
 
