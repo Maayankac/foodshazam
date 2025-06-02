@@ -221,74 +221,36 @@ async function processImageAndRedirect(blob) {
         const imageUrl = `${supabaseUrl}/storage/v1/object/public/images/${fileName}`;
         sessionStorage.setItem('imageUrl', imageUrl);
 
-        const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${openaiApiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "gpt-4o",
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            { type: "text", text: "Please return only a JSON array of ingredient objects in this format: [{\"name\": \"example\", \"calories\": 100}]. No explanation." },
-                            { type: "image_url", image_url: { url: imageUrl } }
-                        ]
-                    }
-                ],
-                max_tokens: 1000
-            })
+        // ⬇️ שליחה לשרת במקום ל-OpenAI ישירות
+        const formData = new FormData();
+        formData.append('image', blob);
+        formData.append('user_id', sessionStorage.getItem('userId')); // במידת הצורך
+
+        const response = await fetch('/analyze-image', {
+            method: 'POST',
+            body: formData
         });
 
-        const result = await gptResponse.json();
-        const gptText = result.choices?.[0]?.message?.content || '';
-        console.log("הטקסט המקורי מ-GPT:", gptText);
+        if (!response.ok) throw new Error('שגיאה מהשרת');
+        const result = await response.json();
 
-        let extractedIngredients = [];
-        let jsonMatch = gptText.match(/\[[\s\S]*?\]/);
-        if (jsonMatch) {
-            try {
-                extractedIngredients = JSON.parse(jsonMatch[0]);
-                sessionStorage.setItem('ingredients', JSON.stringify(extractedIngredients));
-            } catch (e) {
-                console.error('JSON לא תקני:', e);
-                sessionStorage.setItem('ingredients', JSON.stringify([]));
-            }
-        } else {
-            console.warn('GPT לא החזיר מבנה JSON. הטקסט שהתקבל:', gptText);
-            sessionStorage.setItem('ingredients', JSON.stringify([]));
-        }
+        console.log("📢 תוצאה מהשרת:", result);
 
-        sessionStorage.setItem('foodName', 'מנה לא מזוהה');
-
-        const userId = sessionStorage.getItem('userId');
-        if (!userId) {
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (user) {
-                sessionStorage.setItem('userId', user.id);
-                console.log("✔️ userId נטען מחדש:", user.id);
-                await fetchUserAllergies(user.id);
-            } else {
-                console.warn("⚠️ לא ניתן לאחזר משתמש מה-session או מה-auth");
-                return;
-            }
-        } else {
-            await fetchUserAllergies(userId);
-        }
+        // שמירה ב-sessionStorage כדי להמשיך כמו קודם
+        sessionStorage.setItem('ingredients', JSON.stringify(result.ingredients));
+        sessionStorage.setItem('allergens', JSON.stringify(result.allergens));
+        sessionStorage.setItem('foodName', 'מנה לא מזוהה'); // או כל שם שתבחר
+        // אם יש totalCalories - תחשב ותשמור גם
 
         checkForAllergens();
 
-        const totalCalories = extractedIngredients.reduce((sum, i) => sum + (i.calories || 0), 0);
-        const allergens = JSON.parse(sessionStorage.getItem('allergens') || '[]');
-
-        // ✅ שמירה להיסטוריה פר משתמש
+        // שמירה להיסטוריה פר משתמש
+        const totalCalories = 0; // כאן אפשר לחשב לפי רכיבים אם תוסיף
         await saveScanToHistory({
             imageUrl,
-            ingredients: extractedIngredients,
+            ingredients: result.ingredients,
             totalCalories,
-            allergens
+            allergens: result.allergens
         });
 
         // מעבר לעמוד התוצאות
