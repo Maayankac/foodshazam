@@ -1,28 +1,3 @@
-require('dotenv').config();
-const express = require('express');
-const { createClient } = require('@supabase/supabase-js');
-const { OpenAI } = require('openai');
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-
-const app = express();
-const upload = multer({ dest: 'uploads/' });
-const port = process.env.PORT || 3000;
-
-app.use(express.static(__dirname));
-
-// התחברות ל-Supabase
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-// התחברות ל-OpenAI
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// דף הבית
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'foodshazma-home.html'));
-});
-
 // ניתוח תמונה
 app.post('/analyze-image', upload.single('image'), async (req, res) => {
   const imagePath = req.file?.path;
@@ -74,10 +49,8 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       ingredientsList = [];
     }
 
-    // סכום קלוריות
     const totalCalories = ingredientsList.reduce((sum, item) => sum + (item.calories || 0), 0);
 
-    // שליפת אלרגיות מהמשתמש
     const userId = req.body.user_id;
     if (!userId) throw new Error('לא סופק user_id בבקשה.');
 
@@ -94,6 +67,24 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
 
+    // ⬇️⬇️ הוספת שמירה להיסטוריה
+    const fileName = `food_${Date.now()}.jpg`;
+    const { error: uploadError } = await supabase.storage.from('images').upload(fileName, imageBuffer);
+    if (uploadError) console.warn('⚠️ שגיאה בהעלאת תמונה:', uploadError);
+
+    const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/images/${fileName}`;
+
+    const { error: historyError } = await supabase.from('history').insert({
+      user_id: userId,
+      image_url: imageUrl,
+      ingredients: ingredientsList,
+      total_calories: totalCalories,
+      allergens: foundAllergens,
+      created_at: new Date().toISOString() // אופציונלי
+    });
+
+    if (historyError) console.error('❌ שגיאה בשמירת היסטוריה:', historyError);
+
     // תשובה ללקוח
     res.json({
       ingredients: ingredientsList,
@@ -105,12 +96,6 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     console.error('❌ שגיאה:', err);
     res.status(500).json({ error: err.message || 'שגיאה בניתוח התמונה' });
   } finally {
-    if (imagePath && fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
+    if (imagePath && fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
   }
-});
-
-app.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
 });
