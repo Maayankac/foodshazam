@@ -100,7 +100,7 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
     });
     if (historyError) console.error('❌ שגיאה בשמירת היסטוריה:', historyError);
 
-    res.json({ ingredients: ingredientsList, totalCalories, allergens: foundAllergens });
+ res.json({ ingredients: ingredientsList, totalCalories, allergens: foundAllergens, imageUrl });
 
   } catch (err) {
     console.error('❌ שגיאה:', err);
