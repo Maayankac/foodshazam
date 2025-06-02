@@ -236,13 +236,48 @@ async function processImageAndRedirect(blob) {
 
         console.log("📢 תוצאה מהשרת:", result);
 
-        // שמירה ב-sessionStorage כדי להמשיך כמו קודם
-        sessionStorage.setItem('ingredients', JSON.stringify(result.ingredients));
-        sessionStorage.setItem('allergens', JSON.stringify(result.allergens));
-        sessionStorage.setItem('foodName', 'מנה לא מזוהה'); // או כל שם שתבחר
-        // אם יש totalCalories - תחשב ותשמור גם
+      // סידור התוצאות לפי רמות ביטחון וקלוריות
+const confirmedIngredients = result.ingredients.filter(i => i.confidence === 'high');
+const maybeIngredients = result.ingredients.filter(i => i.confidence !== 'high');
 
-        checkForAllergens();
+// שמירה ב-sessionStorage
+sessionStorage.setItem('ingredients', JSON.stringify(confirmedIngredients.concat(maybeIngredients)));
+sessionStorage.setItem('allergens', JSON.stringify(result.allergens));
+sessionStorage.setItem('foodName', 'מנה לא מזוהה');
+
+// בדיקת אלרגנים
+checkForAllergens();
+
+// הצגת רשימה חדשה בדף (לדוגמה ב-ingredientsList)
+ingredientsList.innerHTML = ''; // ננקה קודם
+
+// הצגת מרכיבים בטוחים
+confirmedIngredients.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `${item.name}${item.calories ? `: ${item.calories} קלוריות` : ''}`;
+    ingredientsList.appendChild(li);
+});
+
+// הצגת מרכיבים פחות בטוחים (עלולים להכיל)
+if (maybeIngredients.length > 0) {
+    const warning = document.createElement('h4');
+    warning.textContent = '⚠️ מרכיבים שעשויים להכיל:';
+    ingredientsList.appendChild(warning);
+    maybeIngredients.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name}${item.calories ? `: ${item.calories} קלוריות` : ''}`;
+        li.style.color = 'orange';
+        ingredientsList.appendChild(li);
+    });
+}
+
+// אם אין קלוריות בכלל
+if (confirmedIngredients.every(i => !i.calories) && maybeIngredients.every(i => !i.calories)) {
+    const note = document.createElement('p');
+    note.textContent = '❗ מידע קלורי לא זמין.';
+    ingredientsList.appendChild(note);
+}
+
 
         // שמירה להיסטוריה פר משתמש
         const totalCalories = 0; // כאן אפשר לחשב לפי רכיבים אם תוסיף
