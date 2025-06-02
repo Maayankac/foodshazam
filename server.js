@@ -16,9 +16,7 @@ app.use(express.static(__dirname));
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 // התחברות ל-OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // דף הבית
 app.get('/', (req, res) => {
@@ -40,12 +38,10 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
         {
           role: "user",
           content: [
-            { type: "text", text: "מהם המרכיבים במנה הזו? תן לי רשימה של מרכיבים בלבד כולל כמויות בקלוריות אם ידוע." },
+            { type: "text", text: "מהם המרכיבים במנה הזו? תן לי רשימה בפורמט JSON של [{\"name\": \"רכיב\", \"calories\": 100, \"confidence\": \"high\"}]" },
             {
               type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${base64Image}`,
-              },
+              image_url: { url: `data:image/jpeg;base64,${base64Image}` },
             },
           ],
         }
@@ -63,18 +59,23 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
       if (jsonMatch) {
         ingredientsList = JSON.parse(jsonMatch[0]);
       } else {
+        console.warn('⚠️ GPT לא החזיר פורמט JSON, ניתוח רגיל');
         ingredientsList = gptResponseText.split('\n').map(line => {
           const match = line.match(/(.+?)([:\-]\s*(\d+)\s*calories)?/i);
           return {
             name: match ? match[1].trim() : line.trim(),
-            calories: match && match[3] ? parseInt(match[3]) : null,
-            confidence: line.includes('אופציונלי') || line.includes('אפשרי') ? 'low' : 'high'
+            calories: match && match[3] ? parseInt(match[3]) : 0,
+            confidence: (line.includes('אופציונלי') || line.includes('אפשרי')) ? 'low' : 'high'
           };
         }).filter(i => i.name);
       }
     } catch (error) {
       console.warn('⚠️ שגיאה בפענוח JSON:', error);
+      ingredientsList = [];
     }
+
+    // סכום קלוריות
+    const totalCalories = ingredientsList.reduce((sum, item) => sum + (item.calories || 0), 0);
 
     // שליפת אלרגיות מהמשתמש
     const userId = req.body.user_id;
@@ -90,14 +91,13 @@ app.post('/analyze-image', upload.single('image'), async (req, res) => {
 
     const userAllergies = allergiesData?.allergies || [];
     const foundAllergens = ingredientsList.filter(ingredient =>
-      userAllergies.some(allergy =>
-        ingredient.name.toLowerCase().includes(allergy.toLowerCase())
-      )
+      userAllergies.some(allergy => ingredient.name.toLowerCase().includes(allergy.toLowerCase()))
     );
 
     // תשובה ללקוח
     res.json({
       ingredients: ingredientsList,
+      totalCalories,
       allergens: foundAllergens
     });
 
