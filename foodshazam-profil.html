@@ -12,18 +12,32 @@
   <h1>הפרופיל שלי</h1>
 
   <div class="profile-container">
-    <div class="profile-field"><strong>שם מלא:</strong> <div class="field-box" id="profile-name">...</div></div>
-    <div class="profile-field"><strong>אימייל:</strong> <div class="field-box" id="profile-email">...</div></div>
-    <div class="profile-field"><strong>העדפת תזונה:</strong> <div class="field-box" id="profile-diet">...</div></div>
-    <div class="profile-field"><strong>אלרגיות:</strong> <div class="field-box" id="profile-allergies">...</div></div>
+    <div class="profile-field">
+      <strong>שם מלא:</strong> 
+      <div class="field-box" id="profile-name">...</div>
+    </div>
+    <div class="profile-field">
+      <strong>אימייל:</strong> 
+      <div class="field-box" id="profile-email">...</div>
+    </div>
+    <div class="profile-field">
+      <strong>העדפת תזונה:</strong> 
+      <div class="field-box" id="profile-diet">...</div>
+    </div>
+    <div class="profile-field">
+      <strong>אלרגיות:</strong> 
+      <div class="field-box" id="profile-allergies">...</div>
+    </div>
 
-    <!-- כפתור ערוך פרופיל בתוך הקונטיינר -->
     <button id="toggle-edit-button" class="edit-button">ערוך פרופיל ⬇️</button>
   </div>
 
+  <!-- טופס עריכה מופיע רק כאשר לוחצים על ערוך פרופיל -->
   <form id="edit-profile-form" class="profile-container" style="display:none;">
     <div class="profile-field">
-      <label>שם מלא: <input type="text" id="edit-fullname" placeholder="שם מלא"></label>
+      <label>שם מלא: 
+        <input type="text" id="edit-fullname" placeholder="שם מלא">
+      </label>
     </div>
     <div class="profile-field">
       <label>העדפת תזונה:
