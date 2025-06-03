@@ -13,8 +13,9 @@ h1 {
   color: #333;
 }
 
-#profile-container {
-  background-color: #ffffff;
+/* קונטיינר גדול של הפרופיל */
+.profile-container {
+  background-color: white;
   max-width: 500px;
   margin: 40px auto;
   padding: 30px;
@@ -22,6 +23,7 @@ h1 {
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* ריבוע קטן לכל שדה */
 .profile-field {
   background-color: #f7f7f7;
   padding: 12px 20px;
@@ -31,11 +33,7 @@ h1 {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.profile-field strong {
-  display: inline-block;
-  width: 100px; /* או לפי הצורך */
-}
-
+/* כפתור יציאה */
 #logout-button {
   background-color: #ff7e1f;
   color: white;
@@ -51,4 +49,35 @@ h1 {
 
 #logout-button:hover {
   background-color: #ff9843;
+}
+
+nav.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+nav.bottom-nav a {
+  text-decoration: none;
+  color: #777;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+nav.bottom-nav a.active {
+  color: #ff7e1f;
+}
+
+nav.bottom-nav img {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 5px;
 }
