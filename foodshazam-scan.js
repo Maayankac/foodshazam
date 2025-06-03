@@ -76,30 +76,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  async function processImage(blob) {
-    showLoading();
-    const formData = new FormData();
-    formData.append('image', blob);
-    formData.append('user_id', sessionStorage.getItem('userId') || '');
+async function processImage(blob) {
+  showLoading();
+  const formData = new FormData();
+  formData.append('image', blob);
+  formData.append('user_id', sessionStorage.getItem('userId') || '');
 
-    try {
-      const response = await fetch('/analyze-image', { method: 'POST', body: formData });
-      if (!response.ok) throw new Error('שגיאה מהשרת');
-      const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
+  try {
+    const response = await fetch('/analyze-image', { method: 'POST', body: formData });
+    if (!response.ok) throw new Error('שגיאה מהשרת');
 
-      // שמירת מידע לתצוגה בתוצאות
-      sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
-      sessionStorage.setItem('allergens', JSON.stringify(allergens));
-      sessionStorage.setItem('totalCalories', totalCalories);
-      sessionStorage.setItem('imageUrl', imageUrl); // זה יאפשר לראות את התמונה בדף התוצאות
+    const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
 
-      window.location.href = 'foodshazam-results.html';
-    } catch (e) {
-      showMessage('שגיאה כללית', 'error');
-    } finally {
-      hideLoading();
+    // 🔥 הוספה: שמירת ההיסטוריה ב-Supabase
+    const { error: insertError } = await supabase
+      .from('history')
+      .insert([{
+        user_id: sessionStorage.getItem('userId'),
+        image_url: imageUrl,
+        total_calories: totalCalories,
+        ingredients: JSON.stringify(ingredients),
+        allergens: JSON.stringify(allergens),
+        created_at: new Date().toISOString()
+      }]);
+
+    if (insertError) {
+      console.error('שגיאה בהוספת פרטי התמונה להיסטוריה:', insertError.message);
     }
+
+    // המשך העברה לדף התוצאות
+    sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
+    sessionStorage.setItem('allergens', JSON.stringify(allergens));
+    sessionStorage.setItem('totalCalories', totalCalories);
+    sessionStorage.setItem('imageUrl', imageUrl);
+    window.location.href = 'foodshazam-results.html';
+
+  } catch (e) {
+    showMessage('שגיאה כללית', 'error');
+  } finally {
+    hideLoading();
   }
+}
+
 
   function showLoading() { loadingSection?.classList.remove('hidden'); }
   function hideLoading() { loadingSection?.classList.add('hidden'); }
