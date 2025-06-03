@@ -13,7 +13,7 @@ h1 {
   color: #333;
 }
 
-/* קונטיינר גדול של הפרופיל */
+/* קונטיינר גדול */
 .profile-container {
   background-color: white;
   max-width: 500px;
@@ -33,39 +33,99 @@ h1 {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* כפתור ערוך פרופיל */
-#toggle-edit-button {
+.field-box {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-top: 5px;
+  display: inline-block;
+}
+
+#edit-profile-form {
+  background-color: white;
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+#edit-profile-form .profile-field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+#edit-profile-form input[type="text"],
+#edit-profile-form select {
+  width: calc(100% - 20px);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+}
+
+#edit-allergies-list {
+  margin-top: 10px;
+  text-align: right;
+}
+
+#edit-allergies-list label {
+  margin-right: 10px;
+}
+
+#new-edit-allergy {
+  width: calc(100% - 60px);
+  padding: 8px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+#add-edit-allergy {
+  background-color: #6c63ff;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+#add-edit-allergy:hover {
+  background-color: #5748d6;
+}
+
+button[type="submit"] {
+  background-color: #6c63ff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #5748d6;
+}
+
+.edit-button {
   background-color: #ff7e1f;
   color: white;
-  padding: 12px 30px;
-  font-size: 1rem;
   border: none;
+  padding: 12px 24px;
   border-radius: 30px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(255, 126, 31, 0.3);
-  transition: background 0.3s ease;
-  margin-top: 25px;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
 }
 
-#toggle-edit-button:hover {
-  background-color: #ff9843;
-}
-
-/* כפתור יציאה */
-#logout-button {
-  background-color: #ff7e1f;
-  color: white;
-  padding: 12px 30px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 30px;
-  margin-top: 25px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 126, 31, 0.3);
-  transition: background 0.3s ease;
-}
-
-#logout-button:hover {
+.edit-button:hover {
   background-color: #ff9843;
 }
 
@@ -98,23 +158,4 @@ nav.bottom-nav img {
   width: 24px;
   height: 24px;
   margin-bottom: 5px;
-}
-
-/* כפתור עריכה אחיד לעמוד ולשדות */
-.edit-button {
-  background-color: #ff7e1f;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 30px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 126, 31, 0.3);
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-}
-
-.edit-button:hover {
-  background-color: #ff9843;
 }
