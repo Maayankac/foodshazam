@@ -1,6 +1,8 @@
-// רק דף SCAN
 document.addEventListener('DOMContentLoaded', async () => {
-  const supabase = window.supabase.createClient('https://kimdnostypcecnboxtyf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+  const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // 🔒 החלף במפתח שלך
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
   const cameraToggle = document.getElementById('camera-toggle');
   const camera = document.getElementById('camera');
   const captureButton = document.getElementById('capture-button');
@@ -11,11 +13,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const messageBox = document.getElementById('messageBox');
   const canvas = document.getElementById('capture-canvas');
   const loadingSection = document.getElementById('loading-section');
+
   let stream, cameraActive = false, imageBlob = null;
 
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (user) sessionStorage.setItem('userId', user.id);
-  else console.warn('🟠 אין משתמש מחובר');
+  // קבלת session במקום רק getUser
+  const { data: sessionData, error } = await supabase.auth.getSession();
+  const user = sessionData?.session?.user;
+
+  if (user) {
+    console.log('משתמש מחובר:', user.id);
+    sessionStorage.setItem('userId', user.id);
+  } else {
+    console.warn('🟠 אין session פעיל או משתמש מחובר');
+    showMessage('עליך להתחבר כדי לבצע סריקה', 'error');
+    return; // הפסקת המשך טעינה
+  }
 
   cameraToggle?.addEventListener('click', async () => {
     if (!cameraActive) {
@@ -75,10 +87,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!response.ok) throw new Error('שגיאה מהשרת');
       const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
 
+      // שמירת מידע לתצוגה בתוצאות
       sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
       sessionStorage.setItem('allergens', JSON.stringify(allergens));
       sessionStorage.setItem('totalCalories', totalCalories);
-      sessionStorage.setItem('imageUrl', imageUrl);
+      sessionStorage.setItem('imageUrl', imageUrl); // זה יאפשר לראות את התמונה בדף התוצאות
 
       window.location.href = 'foodshazam-results.html';
     } catch (e) {
