@@ -5,26 +5,23 @@
   <title>FoodShazma - תוצאות ניתוח</title>
   <link rel="stylesheet" href="foodshazam-information.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
   <div class="container">
     <h2>תוצאות ניתוח המנה</h2>
 
-    <!-- תמונה -->
     <div class="image-preview">
       <img id="scanned-image" src="" style="max-width: 200px; border-radius: 8px;" alt="תמונה מהסריקה" />
     </div>
 
-    <!-- מרכיבים -->
     <h3>מרכיבים שזוהו:</h3>
     <ul id="ingredients-list"></ul>
 
-    <!-- סיכום קלוריות -->
     <div id="calories-summary" class="hidden">
       <p><strong>סה"כ קלוריות במנה:</strong> <span id="total-calories">0</span> קק"ל</p>
     </div>
 
-    <!-- אלרגנים -->
     <div id="allergy-warning" class="hidden">
       <h3>⚠️ אלרגנים שנמצאו:</h3>
       <ul id="allergens-list"></ul>
@@ -37,77 +34,84 @@
   </div>
 
   <nav class="bottom-nav">
-    <a href="foodshazma-home.html">
-      <img src="home.png" alt="בית">
-      <span>דף הבית</span>
-    </a>
-    <a href="foodshazam-scan.html">
-      <img src="scan.png" alt="סריקה">
-      <span>סריקה</span>
-    </a>
-    <a href="foodshazam-history.html" class="active">
-      <img src="history.png" alt="היסטוריה">
-      <span>היסטוריה</span>
-    </a>
-    <a href="foodshazam-signup.html">
-      <img src="signup.png" alt="פרופיל">
-      <span>הרשמה/פרופיל</span>
-    </a>
+    <a href="foodshazma-home.html"><img src="home.png" alt="בית"><span>דף הבית</span></a>
+    <a href="foodshazam-scan.html"><img src="scan.png" alt="סריקה"><span>סריקה</span></a>
+    <a href="foodshazam-history.html" class="active"><img src="history.png" alt="היסטוריה"><span>היסטוריה</span></a>
+    <a href="foodshazam-signup.html"><img src="signup.png" alt="פרופיל"><span>הרשמה/פרופיל</span></a>
   </nav>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      const supabase = window.supabase.createClient(
+        'https://kimdnostypcecnboxtyf.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' // 🔒 הכנס את המפתח שלך כאן
+      );
+
+      const { data: { user } } = await supabase.auth.getUser();
       const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
-      const allergens = JSON.parse(sessionStorage.getItem('allergens') || '[]');
-      const imageUrl = sessionStorage.getItem('imageUrl') || '';
       const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
+      const imageUrl = sessionStorage.getItem('imageUrl') || '';
 
       const scannedImage = document.getElementById('scanned-image');
-      const ingredientsListEl = document.getElementById('ingredients-list');
+      const ingredientsList = document.getElementById('ingredients-list');
       const totalCaloriesEl = document.getElementById('total-calories');
       const caloriesSummaryEl = document.getElementById('calories-summary');
-      const allergensListEl = document.getElementById('allergens-list');
-      const allergyWarningEl = document.getElementById('allergy-warning');
-      const noAllergensEl = document.getElementById('no-allergens');
+      const allergensList = document.getElementById('allergens-list');
+      const allergyWarning = document.getElementById('allergy-warning');
+      const noAllergens = document.getElementById('no-allergens');
 
       // תמונה
-      if (scannedImage && imageUrl) {
-        scannedImage.src = imageUrl;
-      } else {
-        scannedImage.alt = 'תמונה לא זמינה';
-      }
+      scannedImage.src = imageUrl || '';
+      scannedImage.alt = imageUrl ? 'תמונה מהסריקה' : 'תמונה לא זמינה';
 
       // מרכיבים
-      ingredientsListEl.innerHTML = '';
+      ingredientsList.innerHTML = '';
       if (ingredients.length > 0) {
         ingredients.forEach(item => {
           const li = document.createElement('li');
-          li.textContent = `${item.name || item}: ${item.calories || 0} קלוריות`;
-          ingredientsListEl.appendChild(li);
+          li.textContent = `${item.name}: ${item.calories} קלוריות`;
+          ingredientsList.appendChild(li);
         });
         caloriesSummaryEl.classList.remove('hidden');
         totalCaloriesEl.textContent = totalCalories;
       } else {
-        const li = document.createElement('li');
-        li.textContent = 'לא זוהו מרכיבים.';
-        ingredientsListEl.appendChild(li);
+        ingredientsList.innerHTML = '<li>לא זוהו מרכיבים.</li>';
       }
 
-      // אלרגנים
-      allergensListEl.innerHTML = '';
-      if (allergens.length > 0) {
-        allergyWarningEl.classList.remove('hidden');
-        noAllergensEl.classList.add('hidden');
-        allergens.forEach(a => {
+      // שליפת אלרגיות מהמשתמש
+      let userAllergies = [];
+      if (user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('allergies')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        userAllergies = userData?.allergies || [];
+      }
+
+      // בדיקת מרכיבים מול אלרגיות
+      let foundAllergens = [];
+      ingredients.forEach(item => {
+        if (userAllergies.some(allergy => item.name.toLowerCase().includes(allergy.toLowerCase()))) {
+          foundAllergens.push(item.name);
+        }
+      });
+
+      if (foundAllergens.length > 0) {
+        allergyWarning.classList.remove('hidden');
+        noAllergens.classList.add('hidden');
+        allergensList.innerHTML = '';
+        foundAllergens.forEach(a => {
           const li = document.createElement('li');
-          li.textContent = a.name || a;
+          li.textContent = '⚠️ ' + a;
           li.style.color = 'red';
           li.style.fontWeight = 'bold';
-          allergensListEl.appendChild(li);
+          allergensList.appendChild(li);
         });
       } else {
-        allergyWarningEl.classList.add('hidden');
-        noAllergensEl.classList.remove('hidden');
+        allergyWarning.classList.add('hidden');
+        noAllergens.classList.remove('hidden');
       }
     });
   </script>
