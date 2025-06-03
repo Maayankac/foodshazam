@@ -54,79 +54,87 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     // מילון סינונימים לאלרגיות
-const allergenSynonyms = {
-  "שומשום": ["שומשום", "sesame", "sesame seeds"],
-  "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
-  "חלב": ["חלב", "milk", "dairy", "lactose"],
-  "סויה": ["סויה", "soy", "soybeans", "soy sauce"],
-  "ביצים": ["ביצים", "eggs", "egg"],
-  "גלוטן": ["גלוטן", "gluten", "wheat"],
-  "שקדים": ["שקדים", "almonds", "almond"],
-  "אגוזים": ["אגוזים", "nuts", "walnuts", "pecan", "cashew", "hazelnut"],
-  "דגים": ["דגים", "fish", "salmon", "tuna"],
-  "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
-};
-    document.addEventListener('DOMContentLoaded', async () => {
-      const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'; // 🔒 החלף במפתח שלך
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+<script>
+  // מילון סינונימים לאלרגיות
+  const allergenSynonyms = {
+    "שומשום": ["שומשום", "sesame", "sesame seeds"],
+    "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
+    "חלב": ["חלב", "milk", "dairy", "lactose"],
+    "סויה": ["סויה", "soy", "soybeans", "soy sauce"],
+    "ביצים": ["ביצים", "eggs", "egg"],
+    "גלוטן": ["גלוטן", "gluten", "wheat"],
+    "שקדים": ["שקדים", "almonds", "almond"],
+    "אגוזים": ["אגוזים", "nuts", "walnuts", "pecan", "cashew", "hazelnut"],
+    "דגים": ["דגים", "fish", "salmon", "tuna"],
+    "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
+  };
 
-      const { data: sessionData, error } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
+  document.addEventListener('DOMContentLoaded', async () => {
+    const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
+    const supabaseKey = '🔑 כאן המפתח שלך';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      if (!user) {
-        console.warn('🟠 אין משתמש מחובר');
-        return;
-      }
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
 
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('allergies')
-        .eq('id', user.id)
-        .single();
+    if (!user) {
+      console.warn('🟠 אין משתמש מחובר');
+      return;
+    }
 
-      const userAllergies = userData?.allergies || [];
+    const { data: userData } = await supabase
+      .from('users')
+      .select('allergies')
+      .eq('id', user.id)
+      .single();
 
-     const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
-const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
-const allergensInScan = [...ingredients.map(i => i.name), ...allergensFromSession];
+    // 🔥 טיפול באלרגיות כמחרוזת
+    let userAllergiesRaw = userData?.allergies || '';
+    const userAllergies = Array.isArray(userAllergiesRaw)
+      ? userAllergiesRaw
+      : userAllergiesRaw.split(',').map(a => a.trim().toLowerCase());
 
-      const imageUrl = sessionStorage.getItem('imageUrl') || '';
-      const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
+    const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
+    const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
+    const allergensInScan = [...ingredients.map(i => i.name), ...allergensFromSession];
 
-      const scannedImage = document.getElementById('scanned-image');
-      scannedImage.src = imageUrl || '';
-      scannedImage.alt = 'תמונה לא זמינה';
+    const imageUrl = sessionStorage.getItem('imageUrl') || '';
+    const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
 
-      const ingredientsListEl = document.getElementById('ingredients-list');
-      ingredientsListEl.innerHTML = ingredients.length > 0
-        ? ingredients.map(item => `<li>${item.name}: ${item.calories} קלוריות</li>`).join('')
-        : '<li>לא זוהו מרכיבים.</li>';
+    const scannedImage = document.getElementById('scanned-image');
+    scannedImage.src = imageUrl || '';
+    scannedImage.alt = 'תמונה לא זמינה';
 
-      const totalCaloriesEl = document.getElementById('total-calories');
-      totalCaloriesEl.textContent = totalCalories;
+    const ingredientsListEl = document.getElementById('ingredients-list');
+    ingredientsListEl.innerHTML = ingredients.length > 0
+      ? ingredients.map(item => `<li>${item.name}: ${item.calories} קלוריות</li>`).join('')
+      : '<li>לא זוהו מרכיבים.</li>';
 
-      const allergensListEl = document.getElementById('allergens-list');
-      const allergyWarningEl = document.getElementById('allergy-warning');
-      const noAllergensEl = document.getElementById('no-allergens');
+    const totalCaloriesEl = document.getElementById('total-calories');
+    totalCaloriesEl.textContent = totalCalories;
 
-   const matchingAllergens = allergensInScan.filter(scannedAllergen =>
-  userAllergies.some(userAllergen => {
-    const synonyms = allergenSynonyms[userAllergen] || [userAllergen];
-    return synonyms.some(syn => scannedAllergen.toLowerCase().includes(syn.toLowerCase()));
-  })
-);
+    const allergensListEl = document.getElementById('allergens-list');
+    const allergyWarningEl = document.getElementById('allergy-warning');
+    const noAllergensEl = document.getElementById('no-allergens');
 
+    const matchingAllergens = allergensInScan.filter(scannedAllergen =>
+      userAllergies.some(userAllergen => {
+        const synonyms = allergenSynonyms[userAllergen] || [userAllergen];
+        return synonyms.some(syn =>
+          scannedAllergen.toLowerCase().includes(syn.toLowerCase())
+        );
+      })
+    );
 
-      if (matchingAllergens.length > 0) {
-        allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
-        allergyWarningEl.classList.remove('hidden');
-        noAllergensEl.classList.add('hidden');
-      } else {
-        allergyWarningEl.classList.add('hidden');
-        noAllergensEl.classList.remove('hidden');
-      }
-    });
-  </script>
+    if (matchingAllergens.length > 0) {
+      allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
+      allergyWarningEl.classList.remove('hidden');
+      noAllergensEl.classList.add('hidden');
+    } else {
+      allergyWarningEl.classList.add('hidden');
+      noAllergensEl.classList.remove('hidden');
+    }
+  });
+</script>
 </body>
 </html>
