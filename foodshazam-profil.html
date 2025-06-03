@@ -11,28 +11,34 @@
 <body>
   <h1>הפרופיל שלי</h1>
 
+  <!-- פרופיל גדול עם ריבועים קטנים לכל שדה -->
   <div class="profile-container">
-    <p><strong>שם מלא:</strong> <span id="profile-name">...</span></p>
-    <p><strong>אימייל:</strong> <span id="profile-email">...</span></p>
-    <p><strong>העדפת תזונה:</strong> <span id="profile-diet">...</span></p>
-    <p><strong>אלרגיות:</strong> <span id="profile-allergies">...</span></p>
+    <div class="profile-field"><strong>שם מלא:</strong> <span id="profile-name">...</span></div>
+    <div class="profile-field"><strong>אימייל:</strong> <span id="profile-email">...</span></div>
+    <div class="profile-field"><strong>העדפת תזונה:</strong> <span id="profile-diet">...</span></div>
+    <div class="profile-field"><strong>אלרגיות:</strong> <span id="profile-allergies">...</span></div>
     <button id="logout-button">התנתק</button>
   </div>
 
-  <form id="edit-profile-form" style="display:none;">
-    <label>שם מלא: <input type="text" id="edit-fullname" placeholder="שם מלא"></label>
-    <label>העדפת תזונה:
-      <select id="edit-diet">
-        <option value="">בחר</option>
-        <option value="vegan">טבעוני</option>
-        <option value="vegetarian">צמחוני</option>
-        <option value="omnivore">אוכל הכל</option>
-        <option value="kosher">כשר</option>
-        <option value="keto">קיטו</option>
-        <option value="lactose_free">רגישות ללקטוז</option>
-      </select>
-    </label>
-    <div>
+  <!-- טופס עריכה תואם -->
+  <form id="edit-profile-form" class="profile-container" style="display:none;">
+    <div class="profile-field">
+      <label>שם מלא: <input type="text" id="edit-fullname" placeholder="שם מלא"></label>
+    </div>
+    <div class="profile-field">
+      <label>העדפת תזונה:
+        <select id="edit-diet">
+          <option value="">בחר</option>
+          <option value="vegan">טבעוני</option>
+          <option value="vegetarian">צמחוני</option>
+          <option value="omnivore">אוכל הכל</option>
+          <option value="kosher">כשר</option>
+          <option value="keto">קיטו</option>
+          <option value="lactose_free">רגישות ללקטוז</option>
+        </select>
+      </label>
+    </div>
+    <div class="profile-field">
       <p>אלרגיות:</p>
       <div id="edit-allergies-list"></div>
       <input type="text" id="new-edit-allergy" placeholder="הוסף אלרגיה">
