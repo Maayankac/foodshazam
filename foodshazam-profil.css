@@ -81,3 +81,21 @@ nav.bottom-nav img {
   height: 24px;
   margin-bottom: 5px;
 }
+.edit-button {
+  background-color: #ff7e1f;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 126, 31, 0.3);
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.edit-button:hover {
+  background-color: #ff9843;
+}
+
