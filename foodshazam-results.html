@@ -1,64 +1,115 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
-  const userAllergies = JSON.parse(sessionStorage.getItem('userAllergies') || '[]');
-  const imageUrl = sessionStorage.getItem('imageUrl');
-  const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>FoodShazma - תוצאות ניתוח</title>
+  <link rel="stylesheet" href="foodshazam-information.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="container">
+    <h2>תוצאות ניתוח המנה</h2>
 
-  const scannedImage = document.getElementById('scanned-image');
-  const ingredientsListEl = document.getElementById('ingredients-list');
-  const totalCaloriesEl = document.getElementById('total-calories');
-  const caloriesSummaryEl = document.getElementById('calories-summary');
-  const allergensListEl = document.getElementById('allergens-list');
-  const allergyWarningEl = document.getElementById('allergy-warning');
-  const noAllergensEl = document.getElementById('no-allergens');
+    <!-- תמונה -->
+    <div class="image-preview">
+      <img id="scanned-image" src="" style="max-width: 200px; border-radius: 8px;" alt="תמונה מהסריקה" />
+    </div>
 
-  if (scannedImage && imageUrl) scannedImage.src = imageUrl;
-  else if (scannedImage) scannedImage.alt = 'תמונה לא זמינה';
+    <!-- מרכיבים -->
+    <h3>מרכיבים שזוהו:</h3>
+    <ul id="ingredients-list"></ul>
 
-  const allergenSynonyms = { /* כמו בקוד שלך */ };
+    <!-- סיכום קלוריות -->
+    <div id="calories-summary" class="hidden">
+      <p><strong>סה"כ קלוריות במנה:</strong> <span id="total-calories">0</span> קק"ל</p>
+    </div>
 
-  let detectedAllergens = [];
-  ingredientsListEl.innerHTML = '';
+    <!-- אלרגנים -->
+    <div id="allergy-warning" class="hidden">
+      <h3>⚠️ אלרגנים שנמצאו:</h3>
+      <ul id="allergens-list"></ul>
+    </div>
+    <div id="no-allergens" class="hidden">
+      <p>✅ לא נמצאו אלרגנים תואמים לרשימת האלרגיות שלך.</p>
+    </div>
 
-  ingredients.forEach(item => {
-    const name = item.name || item;
-    const calories = item.calories || 0;
-    const li = document.createElement('li');
-    li.textContent = `${name}: ${calories} קלוריות`;
+    <a href="foodshazam-scan.html" class="back-button">חזרה לסריקה</a>
+  </div>
 
-    const nameNorm = name.toLowerCase();
-    userAllergies.forEach(userAllergy => {
-      const allergyNorm = userAllergy.toLowerCase();
-      const synonyms = Object.values(allergenSynonyms).find(list =>
-        list.map(s => s.toLowerCase()).includes(allergyNorm)
-      ) || [allergyNorm];
+  <nav class="bottom-nav">
+    <a href="foodshazma-home.html">
+      <img src="home.png" alt="בית">
+      <span>דף הבית</span>
+    </a>
+    <a href="foodshazam-scan.html">
+      <img src="scan.png" alt="סריקה">
+      <span>סריקה</span>
+    </a>
+    <a href="foodshazam-history.html" class="active">
+      <img src="history.png" alt="היסטוריה">
+      <span>היסטוריה</span>
+    </a>
+    <a href="foodshazam-signup.html">
+      <img src="signup.png" alt="פרופיל">
+      <span>הרשמה/פרופיל</span>
+    </a>
+  </nav>
 
-      if (synonyms.some(syn => nameNorm.includes(syn))) {
-        li.style.color = 'red';
-        li.style.fontWeight = 'bold';
-        if (!detectedAllergens.includes(userAllergy)) detectedAllergens.push(userAllergy);
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
+      const allergens = JSON.parse(sessionStorage.getItem('allergens') || '[]');
+      const imageUrl = sessionStorage.getItem('imageUrl') || '';
+      const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
+
+      const scannedImage = document.getElementById('scanned-image');
+      const ingredientsListEl = document.getElementById('ingredients-list');
+      const totalCaloriesEl = document.getElementById('total-calories');
+      const caloriesSummaryEl = document.getElementById('calories-summary');
+      const allergensListEl = document.getElementById('allergens-list');
+      const allergyWarningEl = document.getElementById('allergy-warning');
+      const noAllergensEl = document.getElementById('no-allergens');
+
+      // תמונה
+      if (scannedImage && imageUrl) {
+        scannedImage.src = imageUrl;
+      } else {
+        scannedImage.alt = 'תמונה לא זמינה';
+      }
+
+      // מרכיבים
+      ingredientsListEl.innerHTML = '';
+      if (ingredients.length > 0) {
+        ingredients.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = `${item.name || item}: ${item.calories || 0} קלוריות`;
+          ingredientsListEl.appendChild(li);
+        });
+        caloriesSummaryEl.classList.remove('hidden');
+        totalCaloriesEl.textContent = totalCalories;
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'לא זוהו מרכיבים.';
+        ingredientsListEl.appendChild(li);
+      }
+
+      // אלרגנים
+      allergensListEl.innerHTML = '';
+      if (allergens.length > 0) {
+        allergyWarningEl.classList.remove('hidden');
+        noAllergensEl.classList.add('hidden');
+        allergens.forEach(a => {
+          const li = document.createElement('li');
+          li.textContent = a.name || a;
+          li.style.color = 'red';
+          li.style.fontWeight = 'bold';
+          allergensListEl.appendChild(li);
+        });
+      } else {
+        allergyWarningEl.classList.add('hidden');
+        noAllergensEl.classList.remove('hidden');
       }
     });
-
-    ingredientsListEl.appendChild(li);
-  });
-
-  if (ingredients.length) {
-    caloriesSummaryEl.classList.remove('hidden');
-    totalCaloriesEl.textContent = totalCalories;
-  }
-
-  if (detectedAllergens.length) {
-    allergyWarningEl.classList.remove('hidden');
-    noAllergensEl.classList.add('hidden');
-    allergensListEl.innerHTML = '';
-    detectedAllergens.forEach(a => {
-      const li = document.createElement('li');
-      li.textContent = a;
-      allergensListEl.appendChild(li);
-    });
-  } else {
-    allergyWarningEl.classList.add('hidden');
-    noAllergensEl.classList.remove('hidden');
-  }
-});
+  </script>
+</body>
+</html>
