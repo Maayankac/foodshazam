@@ -53,7 +53,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    // מילון סינונימים לאלרגיות
     const allergenSynonyms = {
       "שומשום": ["שומשום", "sesame", "sesame seeds"],
       "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
@@ -68,17 +67,14 @@
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4';
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+      const supabase = window.supabase.createClient(
+        'https://kimdnostypcecnboxtyf.supabase.co',
+        'YOUR_SUPABASE_KEY'
+      );
 
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
-
-      if (!user) {
-        console.warn('🟠 אין משתמש מחובר');
-        return;
-      }
+      if (!user) return;
 
       const { data: userData } = await supabase
         .from('users')
@@ -91,29 +87,20 @@
         ? userAllergiesRaw
         : userAllergiesRaw.split(',').map(a => a.trim().toLowerCase());
 
-      // בניית מילון הפוך (סינונימים -> אלרגיה עיקרית)
       const reverseSynonymsMap = {};
       Object.entries(allergenSynonyms).forEach(([main, synonyms]) => {
         synonyms.forEach(s => reverseSynonymsMap[s.toLowerCase()] = main);
       });
 
-      // נרמול האלרגיות למפתחות העבריים
       const normalizedAllergies = userAllergies.map(a => reverseSynonymsMap[a.toLowerCase()] || a);
 
-      // בניית כל הסינונימים לבדיקה
       const allergySynonyms = normalizedAllergies.flatMap(allergy =>
         allergenSynonyms[allergy] || [allergy]
       ).map(a => a.toLowerCase());
 
-      // 🔍 DEBUG
-      console.log("📦 רשימת אלרגיות המשתמש:", userAllergies);
-      console.log("🧩 כל הסינונימים לבדיקה:", allergySynonyms);
-
       const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
       const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
       const allergensInScan = [...ingredients.map(i => i.name), ...allergensFromSession];
-
-      console.log("🧪 רשימת מרכיבים שנסרקו:", allergensInScan);
 
       const imageUrl = sessionStorage.getItem('imageUrl') || '';
       const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
@@ -121,26 +108,24 @@
       document.getElementById('scanned-image').src = imageUrl || '';
       document.getElementById('total-calories').textContent = totalCalories;
 
-ingredientsListEl.innerHTML = ingredients.length > 0
-  ? ingredients.map(item => {
-      const name = item?.name || 'מרכיב לא ידוע';
-      const calories = item?.calories ?? '?';
-      return `<li>${name}: ${calories} קלוריות</li>`;
-    }).join('')
-  : '<li>לא זוהו מרכיבים.</li>';
-
+      const ingredientsListEl = document.getElementById('ingredients-list');
+      ingredientsListEl.innerHTML = ingredients.length > 0
+        ? ingredients.map(item => {
+            const name = item?.name || 'מרכיב לא ידוע';
+            const calories = item?.calories ?? '?';
+            return `<li>${name}: ${calories} קלוריות</li>`;
+          }).join('')
+        : '<li>לא זוהו מרכיבים.</li>';
 
       const allergensListEl = document.getElementById('allergens-list');
       const allergyWarningEl = document.getElementById('allergy-warning');
       const noAllergensEl = document.getElementById('no-allergens');
 
-const matchingAllergens = allergensInScan.filter(scannedAllergen =>
-  allergySynonyms.some(syn =>
-    scannedAllergen.toLowerCase().includes(syn)
-  )
-);
-
-
+      const matchingAllergens = allergensInScan.filter(scannedAllergen =>
+        allergySynonyms.some(syn =>
+          scannedAllergen.toLowerCase().includes(syn)
+        )
+      );
 
       if (matchingAllergens.length > 0) {
         allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
