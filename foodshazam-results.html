@@ -52,7 +52,7 @@
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
+<script>
   // מילון סינונימים לאלרגיות
   const allergenSynonyms = {
     "שומשום": ["שומשום", "sesame", "sesame seeds"],
@@ -86,11 +86,15 @@
       .eq('id', user.id)
       .single();
 
-    // 🔥 טיפול באלרגיות כמחרוזת
-    let userAllergiesRaw = userData?.allergies || '';
+    let userAllergiesRaw = userData?.allergies || [];
     const userAllergies = Array.isArray(userAllergiesRaw)
       ? userAllergiesRaw
       : userAllergiesRaw.split(',').map(a => a.trim().toLowerCase());
+
+    // יצירת רשימת סינונימים של כל האלרגיות של המשתמש
+    const allergySynonyms = userAllergies.flatMap(allergy =>
+      allergenSynonyms[allergy] || [allergy]
+    ).map(a => a.toLowerCase());
 
     const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
     const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
@@ -116,12 +120,9 @@
     const noAllergensEl = document.getElementById('no-allergens');
 
     const matchingAllergens = allergensInScan.filter(scannedAllergen =>
-      userAllergies.some(userAllergen => {
-        const synonyms = allergenSynonyms[userAllergen] || [userAllergen];
-        return synonyms.some(syn =>
-          scannedAllergen.toLowerCase().includes(syn.toLowerCase())
-        );
-      })
+      allergySynonyms.some(syn =>
+        scannedAllergen.toLowerCase().includes(syn)
+      )
     );
 
     if (matchingAllergens.length > 0) {
@@ -134,5 +135,6 @@
     }
   });
 </script>
+
 </body>
 </html>
