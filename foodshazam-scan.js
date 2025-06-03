@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'; // 🔒 החלף במפתח שלך
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'; // 🔒 השתמש במפתח שלך
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   const cameraToggle = document.getElementById('camera-toggle');
@@ -16,19 +16,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let stream, cameraActive = false, imageBlob = null;
 
-  // קבלת session במקום רק getUser
+  // קבלת session
   const { data: sessionData, error } = await supabase.auth.getSession();
   const user = sessionData?.session?.user;
 
-  if (user) {
-    console.log('משתמש מחובר:', user.id);
-    sessionStorage.setItem('userId', user.id);
-  } else {
-    console.warn('🟠 אין session פעיל או משתמש מחובר');
+  if (!user) {
+    console.warn('🟠 אין משתמש מחובר');
     showMessage('עליך להתחבר כדי לבצע סריקה', 'error');
-    return; // הפסקת המשך טעינה
+    return;
   }
+  console.log('משתמש מחובר:', user.id);
 
+  // שמור user_id בזיכרון
+  sessionStorage.setItem('userId', user.id);
+
+  // הפעלת המצלמה
   cameraToggle?.addEventListener('click', async () => {
     if (!cameraActive) {
       try {
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // צילום תמונה מהמצלמה
   captureButton?.addEventListener('click', () => {
     if (!cameraActive) return;
     const context = canvas.getContext('2d');
@@ -65,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 'image/jpeg');
   });
 
+  // העלאת קובץ מהמחשב
   uploadBox?.addEventListener('click', () => fileInput?.click());
   fileInput?.addEventListener('change', () => {
     const file = fileInput.files[0];
@@ -76,51 +80,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-async function processImage(blob) {
-  showLoading();
-  const formData = new FormData();
-  formData.append('image', blob);
-  formData.append('user_id', sessionStorage.getItem('userId') || '');
+  async function processImage(blob) {
+    showLoading();
+    const formData = new FormData();
+    formData.append('image', blob);
+    formData.append('user_id', user.id); // שמור user_id לשרת
 
-  try {
-    const response = await fetch('/analyze-image', { method: 'POST', body: formData });
-    if (!response.ok) throw new Error('שגיאה מהשרת');
+    try {
+      const response = await fetch('/analyze-image', { method: 'POST', body: formData });
+      if (!response.ok) throw new Error('שגיאה מהשרת');
 
-    const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
+      const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
 
-    // 🔥 הוספה: שמירת ההיסטוריה ב-Supabase
-    const { error: insertError } = await supabase
-      .from('history')
-      .insert([{
-        user_id: sessionStorage.getItem('userId'),
-        image_url: imageUrl,
-        total_calories: totalCalories,
-        ingredients: JSON.stringify(ingredients),
-        allergens: JSON.stringify(allergens),
-        created_at: new Date().toISOString()
-      }]);
+      // הוספה להיסטוריה
+      const { error: insertError } = await supabase
+        .from('history')
+        .insert([{
+          user_id: user.id,
+          image_url: imageUrl,
+          total_calories: totalCalories,
+          ingredients: JSON.stringify(ingredients),
+          allergens: JSON.stringify(allergens),
+          created_at: new Date().toISOString()
+        }]);
 
-    if (insertError) {
-      console.error('שגיאה בהוספת פרטי התמונה להיסטוריה:', insertError.message);
+      if (insertError) {
+        console.error('שגיאה בהוספת להיסטוריה:', insertError.message);
+        showMessage('⚠️ שגיאה בשמירת היסטוריה', 'error');
+      }
+
+      // שמירת פרטים ל-sessionStorage והעברה לדף התוצאות
+      sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
+      sessionStorage.setItem('allergens', JSON.stringify(allergens));
+      sessionStorage.setItem('totalCalories', totalCalories);
+      sessionStorage.setItem('imageUrl', imageUrl);
+      window.location.href = 'foodshazam-results.html';
+
+    } catch (e) {
+      console.error(e);
+      showMessage('⚠️ שגיאה כללית', 'error');
+    } finally {
+      hideLoading();
     }
-
-    // המשך העברה לדף התוצאות
-    sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
-    sessionStorage.setItem('allergens', JSON.stringify(allergens));
-    sessionStorage.setItem('totalCalories', totalCalories);
-    sessionStorage.setItem('imageUrl', imageUrl);
-    window.location.href = 'foodshazam-results.html';
-
-  } catch (e) {
-    showMessage('שגיאה כללית', 'error');
-  } finally {
-    hideLoading();
   }
-}
 
+  function showLoading() {
+    loadingSection?.classList.remove('hidden');
+  }
 
-  function showLoading() { loadingSection?.classList.remove('hidden'); }
-  function hideLoading() { loadingSection?.classList.add('hidden'); }
+  function hideLoading() {
+    loadingSection?.classList.add('hidden');
+  }
+
   function showMessage(text, type) {
     messageBox.textContent = text;
     messageBox.className = type === 'error' ? 'error' : 'success';
