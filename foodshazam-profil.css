@@ -2,233 +2,99 @@ body {
   font-family: 'Heebo', sans-serif;
   background: linear-gradient(135deg, #f8f9fa, #e0e0e0);
   margin: 0;
-  padding: 20px;
+  padding: 40px 20px;
   direction: rtl;
   text-align: center;
 }
 
-.profile-container {
-  background-color: white;
-  max-width: 500px;
-  margin: 40px auto;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 0.6s ease-in-out;
-}
-
 h1 {
-  font-size: 2.2rem;
-  margin-bottom: 25px;
-  color: #333;
-}
-
-h1 .orange {
-  color: #ff7e1f;
+  font-size: 2.5rem;
   font-weight: bold;
-}
-
-h1 .bold-name {
-  font-weight: 800;
   color: #ff7e1f;
+  margin-bottom: 30px;
 }
 
-.profile-container p {
-  font-size: 1rem;
-  margin: 10px 0;
-  line-height: 1.8;
-  color: #333;
-}
-
-.profile-field {
-  margin-bottom: 20px;
-  text-align: right;
-}
-
-.profile-field label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #333;
-}
-
-.field-box {
-  background-color: #fdfdfd;
+.container, .profile-container, form {
+  background-color: #fff;
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 30px;
   border-radius: 25px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select {
+  width: 100%;
   padding: 12px 20px;
   border: 1px solid #ddd;
+  border-radius: 30px;
   font-size: 1rem;
-  color: #555;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin: 10px 0;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.allergy-box {
-  color: #d12a2a;
-  font-weight: bold;
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  color: #bbb;
 }
 
-.profile-container h2 {
-  font-size: 2rem;
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-.form-title {
-  font-size: 2.3rem;
-  font-weight: 800;
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.form-title.orange {
-  color: #ff7e1f;
-}
-
-.profile-container p strong {
-  font-weight: 600;
-}
-
-.allergy-list {
-  color: #d12a2a;
-  font-weight: bold;
-  display: inline-block;
-  margin-top: 5px;
-}
-/* כותרת לאלרגיות */
-#edit-profile-wrapper p {
-  font-weight: 700;
-  color: #ff7e1f;
-  font-size: 1.4rem;
-  margin-top: 20px;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-/* אזור צ'קבוקסים בפריסה של שלישיות */
-#edit-allergies-list {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px 20px;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-#edit-allergies-list label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1rem;
-  color: #333;
-}
-
-/* שדה להוספת אלרגיה נוספת */
-#new-edit-allergy {
-  padding: 10px 16px;
-  border: 1px solid #ddd;
-  border-radius: 25px;
-  width: 100%;
-  max-width: 300px;
-  font-size: 1rem;
-  margin-top: 10px;
-}
-
-/* כפתור הוספה */
-#add-edit-allergy {
+button, .btn {
   background-color: #ff7e1f;
-  color: white;
+  color: #fff;
+  padding: 12px 25px;
   border: none;
-  border-radius: 25px;
-  padding: 10px 20px;
-  margin-right: 180px;
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.3s ease;
-}
-
-#add-edit-allergy:hover {
-  background-color: #e66e00;
-}
-
-#edit-profile-wrapper {
-  margin-top: 20px;
-  padding: 20px;
-  border: 1px solid #eee;
-  border-radius: 16px;
-  background-color: #fafafa;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
-  max-width: 480px;
-  margin-inline: auto;
-}
-
-#edit-profile-form label {
-  display: block;
-  margin-bottom: 12px;
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-#edit-profile-form input,
-#edit-profile-form select {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin-top: 4px;
-  font-size: 0.95rem;
-}
-
-#edit-profile-form button[type="submit"] {
-  background-color: #6c63ff;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 16px;
-}
-
-#edit-profile-form button[type="submit"]:hover {
-  background-color: #5a52d6;
-}
-
-button#toggle-edit-button {
-  background-color: #ff7e1f;
-  color: white;
-  border: none;
-  padding: 10px 20px;
   border-radius: 30px;
   font-size: 1rem;
   cursor: pointer;
-  margin: 20px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 15px;
   transition: background-color 0.3s ease;
 }
 
-button#toggle-edit-button:hover {
-  background-color: #e68900;
+button:hover, .btn:hover {
+  background-color: #e66e00;
 }
 
-#logout-button {
+label {
+  display: block;
+  text-align: right;
+  margin: 15px 0 5px;
+  font-weight: 600;
+  color: #333;
+}
+
+#edit-profile-wrapper {
+  display: none;
+  background-color: #f7f7f7;
+  padding: 20px;
+  border-radius: 20px;
+  margin-top: 20px;
+}
+
+#edit-profile-wrapper p {
+  color: #ff7e1f;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#edit-allergies-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+#add-edit-allergy {
   background-color: #ff7e1f;
-  color: white;
-  padding: 12px 30px;
-  font-size: 1rem;
   border: none;
-  border-radius: 30px;
-  margin-top: 25px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: white;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 126, 31, 0.3);
-  transition: background 0.3s ease;
-}
-
-#logout-button:hover {
-  background-color: #ff9843;
+  margin-top: 10px;
 }
 
 nav.bottom-nav {
@@ -237,10 +103,9 @@ nav.bottom-nav {
   width: 100%;
   display: flex;
   justify-content: space-around;
+  background-color: white;
   padding: 10px 0;
-  background-color: #fff;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
 }
 
 nav.bottom-nav a {
@@ -262,41 +127,13 @@ nav.bottom-nav img {
   margin-bottom: 5px;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 480px) {
-  .profile-container {
+  .container, .profile-container, form {
     padding: 20px 15px;
-    margin: 20px 10px;
+    margin: 10px;
   }
 
   h1 {
-    font-size: 1.6rem;
-  }
-
-  .profile-container p {
-    font-size: 0.95rem;
-  }
-
-  #logout-button {
-    width: 80%;
-  }
-
-  nav.bottom-nav a {
-    font-size: 0.75rem;
-  }
-
-  nav.bottom-nav img {
-    width: 20px;
-    height: 20px;
+    font-size: 1.8rem;
   }
 }
