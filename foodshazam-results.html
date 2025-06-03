@@ -130,11 +130,12 @@
       const allergyWarningEl = document.getElementById('allergy-warning');
       const noAllergensEl = document.getElementById('no-allergens');
 
-      const matchingAllergens = allergensInScan.filter(scannedAllergen =>
-        allergySynonyms.some(syn =>
-          scannedAllergen.trim().toLowerCase().includes(syn)
-        )
-      );
+    const matchingAllergens = allergensInScan.filter(scannedAllergen =>
+  allergySynonyms.some(syn =>
+    syn === scannedAllergen.trim().toLowerCase()
+  )
+);
+
 
       if (matchingAllergens.length > 0) {
         allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
