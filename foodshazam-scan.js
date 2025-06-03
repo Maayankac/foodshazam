@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'; // 🔒 השתמש במפתח שלך
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4;
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   const cameraToggle = document.getElementById('camera-toggle');
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let stream, cameraActive = false, imageBlob = null;
 
-  // קבלת session
+  // קבלת המשתמש המחובר
   const { data: sessionData, error } = await supabase.auth.getSession();
   const user = sessionData?.session?.user;
 
@@ -25,12 +25,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     showMessage('עליך להתחבר כדי לבצע סריקה', 'error');
     return;
   }
-  console.log('משתמש מחובר:', user.id);
 
-  // שמור user_id בזיכרון
+  console.log("✅ user.id:", user.id);
   sessionStorage.setItem('userId', user.id);
 
-  // הפעלת המצלמה
+  // הפעלת מצלמה
   cameraToggle?.addEventListener('click', async () => {
     if (!cameraActive) {
       try {
@@ -39,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         camera.style.display = 'block';
         cameraActive = true;
         captureButton.classList.remove('hidden');
-      } catch (err) {
+      } catch {
         showMessage('לא ניתן להפעיל מצלמה', 'error');
       }
     } else {
@@ -51,7 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // צילום תמונה מהמצלמה
   captureButton?.addEventListener('click', () => {
     if (!cameraActive) return;
     const context = canvas.getContext('2d');
@@ -68,7 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 'image/jpeg');
   });
 
-  // העלאת קובץ מהמחשב
   uploadBox?.addEventListener('click', () => fileInput?.click());
   fileInput?.addEventListener('change', () => {
     const file = fileInput.files[0];
@@ -84,15 +81,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     showLoading();
     const formData = new FormData();
     formData.append('image', blob);
-    formData.append('user_id', user.id); // שמור user_id לשרת
+    formData.append('user_id', user.id);
 
     try {
-      const response = await fetch('/analyze-image', { method: 'POST', body: formData });
+      const response = await fetch('/analyze-image', {
+        method: 'POST',
+        body: formData
+      });
+
       if (!response.ok) throw new Error('שגיאה מהשרת');
 
       const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
 
-      // הוספה להיסטוריה
+      console.log("🧠 הכנסת user_id:", user.id);
+
       const { error: insertError } = await supabase
         .from('history')
         .insert([{
@@ -105,11 +107,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }]);
 
       if (insertError) {
-        console.error('שגיאה בהוספת להיסטוריה:', insertError.message);
+        console.error('❌ שגיאה בהכנסה:', insertError.message);
         showMessage('⚠️ שגיאה בשמירת היסטוריה', 'error');
+        return;
       }
 
-      // שמירת פרטים ל-sessionStorage והעברה לדף התוצאות
+      // שמירה והעברה
       sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
       sessionStorage.setItem('allergens', JSON.stringify(allergens));
       sessionStorage.setItem('totalCalories', totalCalories);
@@ -117,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.href = 'foodshazam-results.html';
 
     } catch (e) {
-      console.error(e);
+      console.error('🧨 שגיאה:', e);
       showMessage('⚠️ שגיאה כללית', 'error');
     } finally {
       hideLoading();
