@@ -11,46 +11,45 @@
 <body>
   <h1>הפרופיל שלי</h1>
 
+  <!-- תצוגת פרופיל עם ריבועים -->
   <div class="profile-container">
     <div class="profile-field">
-      <strong>שם מלא:</strong> 
+      <strong>שם מלא:</strong>
       <div class="field-box" id="profile-name">...</div>
     </div>
     <div class="profile-field">
-      <strong>אימייל:</strong> 
+      <strong>אימייל:</strong>
       <div class="field-box" id="profile-email">...</div>
     </div>
     <div class="profile-field">
-      <strong>העדפת תזונה:</strong> 
+      <strong>העדפת תזונה:</strong>
       <div class="field-box" id="profile-diet">...</div>
     </div>
     <div class="profile-field">
-      <strong>אלרגיות:</strong> 
+      <strong>אלרגיות:</strong>
       <div class="field-box" id="profile-allergies">...</div>
     </div>
 
     <button id="toggle-edit-button" class="edit-button">ערוך פרופיל ⬇️</button>
   </div>
 
-  <!-- טופס עריכה מופיע רק כאשר לוחצים על ערוך פרופיל -->
+  <!-- טופס עריכה עם עיצוב תואם -->
   <form id="edit-profile-form" class="profile-container" style="display:none;">
     <div class="profile-field">
-      <label>שם מלא: 
-        <input type="text" id="edit-fullname" placeholder="שם מלא">
-      </label>
+      <label for="edit-fullname">שם מלא:</label>
+      <input type="text" id="edit-fullname" placeholder="שם מלא">
     </div>
     <div class="profile-field">
-      <label>העדפת תזונה:
-        <select id="edit-diet">
-          <option value="">בחר</option>
-          <option value="vegan">טבעוני</option>
-          <option value="vegetarian">צמחוני</option>
-          <option value="omnivore">אוכל הכל</option>
-          <option value="kosher">כשר</option>
-          <option value="keto">קיטו</option>
-          <option value="lactose_free">רגישות ללקטוז</option>
-        </select>
-      </label>
+      <label for="edit-diet">העדפת תזונה:</label>
+      <select id="edit-diet">
+        <option value="">בחר</option>
+        <option value="vegan">טבעוני</option>
+        <option value="vegetarian">צמחוני</option>
+        <option value="omnivore">אוכל הכל</option>
+        <option value="kosher">כשר</option>
+        <option value="keto">קיטו</option>
+        <option value="lactose_free">רגישות ללקטוז</option>
+      </select>
     </div>
     <div class="profile-field">
       <p>אלרגיות:</p>
@@ -62,6 +61,7 @@
     <div id="edit-message" class="hidden"></div>
   </form>
 
+  <!-- ניווט תחתון -->
   <nav class="bottom-nav">
     <a href="foodshazma-home.html" class="active">
       <img src="home.png" alt="בית">
