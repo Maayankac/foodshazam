@@ -5,27 +5,22 @@
   <title>FoodShazma - תוצאות ניתוח</title>
   <link rel="stylesheet" href="foodshazam-information.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
   <div class="container">
     <h2>תוצאות ניתוח המנה</h2>
 
-    <!-- תמונה -->
     <div class="image-preview">
       <img id="scanned-image" src="" style="max-width: 200px; border-radius: 8px;" alt="תמונה מהסריקה" />
     </div>
 
-    <!-- מרכיבים -->
     <h3>מרכיבים שזוהו:</h3>
     <ul id="ingredients-list"></ul>
 
-    <!-- סיכום קלוריות -->
-    <div id="calories-summary" class="hidden">
+    <div id="calories-summary">
       <p><strong>סה"כ קלוריות במנה:</strong> <span id="total-calories">0</span> קק"ל</p>
     </div>
 
-    <!-- אלרגנים -->
     <div id="allergy-warning" class="hidden">
       <h3>⚠️ אלרגנים שנמצאו:</h3>
       <ul id="allergens-list"></ul>
@@ -56,60 +51,58 @@
     </a>
   </nav>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const supabase = window.supabase.createClient('https://kimdnostypcecnboxtyf.supabase.co', 'eyJhbGciOiJI...'); // 🔒 החלף במפתח שלך
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData?.session?.user?.id;
+      const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'; // 🔒 החלף במפתח שלך
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+
+      if (!user) {
+        console.warn('🟠 אין משתמש מחובר');
+        return;
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('allergies')
+        .eq('id', user.id)
+        .single();
+
+      const userAllergies = userData?.allergies || [];
 
       const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
-      const detectedAllergens = JSON.parse(sessionStorage.getItem('allergens') || '[]');
+      const allergensInScan = JSON.parse(sessionStorage.getItem('allergens') || '[]');
       const imageUrl = sessionStorage.getItem('imageUrl') || '';
       const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
 
       const scannedImage = document.getElementById('scanned-image');
+      scannedImage.src = imageUrl || '';
+      scannedImage.alt = 'תמונה לא זמינה';
+
       const ingredientsListEl = document.getElementById('ingredients-list');
+      ingredientsListEl.innerHTML = ingredients.length > 0
+        ? ingredients.map(item => `<li>${item.name}: ${item.calories} קלוריות</li>`).join('')
+        : '<li>לא זוהו מרכיבים.</li>';
+
       const totalCaloriesEl = document.getElementById('total-calories');
-      const caloriesSummaryEl = document.getElementById('calories-summary');
+      totalCaloriesEl.textContent = totalCalories;
+
       const allergensListEl = document.getElementById('allergens-list');
       const allergyWarningEl = document.getElementById('allergy-warning');
       const noAllergensEl = document.getElementById('no-allergens');
 
-      // תמונה
-      scannedImage.src = imageUrl || '';
-      scannedImage.alt = imageUrl ? 'תמונה מהסריקה' : 'תמונה לא זמינה';
+      const matchingAllergens = allergensInScan.filter(a =>
+        userAllergies.some(ua => a.toLowerCase().includes(ua.toLowerCase()))
+      );
 
-      // הצגת מרכיבים וקלוריות
-      if (ingredients.length > 0) {
-        ingredients.forEach(item => {
-          const li = document.createElement('li');
-          li.textContent = `${item.name || item}: ${item.calories || 0} קלוריות`;
-          ingredientsListEl.appendChild(li);
-        });
-        caloriesSummaryEl.classList.remove('hidden');
-        totalCaloriesEl.textContent = totalCalories;
-      } else {
-        ingredientsListEl.innerHTML = '<li>לא זוהו מרכיבים.</li>';
-      }
-
-      // קבלת אלרגיות המשתמש מה-DB
-      const { data: userData, error } = await supabase.from('users').select('allergies').eq('id', userId).single();
-      const userAllergies = (userData?.allergies || []).map(a => a.toLowerCase());
-
-      // בדיקה אם יש התאמה לאלרגיות
-      const matchedAllergens = detectedAllergens.filter(a => userAllergies.includes(a.toLowerCase()));
-
-      if (matchedAllergens.length > 0) {
+      if (matchingAllergens.length > 0) {
+        allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
         allergyWarningEl.classList.remove('hidden');
         noAllergensEl.classList.add('hidden');
-        allergensListEl.innerHTML = '';
-        matchedAllergens.forEach(a => {
-          const li = document.createElement('li');
-          li.textContent = '⚠️ ' + a;
-          li.style.color = 'red';
-          li.style.fontWeight = 'bold';
-          allergensListEl.appendChild(li);
-        });
       } else {
         allergyWarningEl.classList.add('hidden');
         noAllergensEl.classList.remove('hidden');
