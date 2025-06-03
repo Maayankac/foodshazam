@@ -11,16 +11,15 @@
 <body>
   <h1>הפרופיל שלי</h1>
 
-  <!-- פרופיל גדול עם ריבועים קטנים לכל שדה -->
   <div class="profile-container">
     <div class="profile-field"><strong>שם מלא:</strong> <span id="profile-name">...</span></div>
     <div class="profile-field"><strong>אימייל:</strong> <span id="profile-email">...</span></div>
     <div class="profile-field"><strong>העדפת תזונה:</strong> <span id="profile-diet">...</span></div>
     <div class="profile-field"><strong>אלרגיות:</strong> <span id="profile-allergies">...</span></div>
-    <button id="logout-button">התנתק</button>
   </div>
 
-  <!-- טופס עריכה תואם -->
+  <button id="toggle-edit-button">ערוך פרופיל ⬇️</button>
+
   <form id="edit-profile-form" class="profile-container" style="display:none;">
     <div class="profile-field">
       <label>שם מלא: <input type="text" id="edit-fullname" placeholder="שם מלא"></label>
@@ -47,8 +46,6 @@
     <button type="submit">💾 שמור שינויים</button>
     <div id="edit-message" class="hidden"></div>
   </form>
-
-  <button id="toggle-edit-button">ערוך פרופיל ⬇️</button>
 
   <nav class="bottom-nav">
     <a href="foodshazma-home.html" class="active">
