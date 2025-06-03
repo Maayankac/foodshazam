@@ -12,14 +12,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     const popupAllergens = document.getElementById('popup-allergens');
     const closePopup = document.getElementById('close-popup');
 
-    // 🧠 קבלת המשתמש המחובר
+    const allergenMap = {
+      "שומשום": ["שומשום", "sesame", "sesame seeds"],
+      "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
+      "חלב": ["חלב", "milk", "dairy", "lactose"],
+      "סויה": ["סויה", "soy", "soybeans", "soy sauce"],
+      "ביצים": ["ביצים", "eggs", "egg"],
+      "גלוטן": ["גלוטן", "gluten", "wheat"],
+      "שקדים": ["שקדים", "almonds", "almond"],
+      "אגוזים": ["אגוזים", "nuts", "walnuts", "pecan", "cashew", "hazelnut"],
+      "דגים": ["דגים", "fish", "salmon", "tuna"],
+      "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
+    };
+
+    function isAllergen(ingredientName, allergen) {
+      const synonyms = allergenMap[allergen] || [allergen];
+      return synonyms.some(syn =>
+        ingredientName.toLowerCase().includes(syn.toLowerCase())
+      );
+    }
+
     const { data: { user }, error } = await supabase.auth.getUser();
     if (!user) {
         container.innerHTML = '<p>יש להתחבר כדי לראות את היסטוריית הסריקות.</p>';
         return;
     }
 
-    // 📥 שליפת ההיסטוריה עבור המשתמש בלבד
     const { data: historyData, error: fetchError } = await supabase
       .from('history')
       .select('*')
@@ -31,7 +49,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // ✅ הצגת התמונות והפופאפ
     historyData.forEach(entry => {
         const img = document.createElement('img');
         img.src = entry.image_url;
@@ -44,14 +61,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             popupIngredients.innerHTML = '';
             popupAllergens.innerHTML = '';
 
-            // 🔥 פענוח JSON של ingredients ו-allergens
             const ingredients = typeof entry.ingredients === 'string' ? JSON.parse(entry.ingredients) : entry.ingredients;
             const allergens = typeof entry.allergens === 'string' ? JSON.parse(entry.allergens) : entry.allergens;
 
             ingredients?.forEach(i => {
                 const li = document.createElement('li');
                 li.textContent = `${i.name}: ${i.calories} קלוריות`;
-                if (allergens?.some(a => i.name.toLowerCase().includes(a.toLowerCase()))) {
+                if (allergens?.some(a => isAllergen(i.name, a))) {
                     li.style.color = 'red';
                     li.style.fontWeight = 'bold';
                     li.innerHTML = '⚠️ ' + li.textContent;
@@ -59,12 +75,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 popupIngredients.appendChild(li);
             });
 
-            allergens?.forEach(a => {
-                const li = document.createElement('li');
-                li.textContent = '⚠️ ' + a;
-                li.style.color = 'red';
-                popupAllergens.appendChild(li);
-            });
+            if (allergens?.length > 0) {
+                const header = document.createElement('h4');
+                header.textContent = 'אלרגנים:';
+                popupAllergens.appendChild(header);
+
+                allergens.forEach(a => {
+                    const li = document.createElement('li');
+                    li.textContent = '⚠️ ' + a;
+                    li.style.color = 'red';
+                    popupAllergens.appendChild(li);
+                });
+            }
 
             popup.classList.remove('hidden');
         });
@@ -72,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         container.appendChild(img);
     });
 
-    // סגירת הפופאפ
     closePopup.addEventListener('click', () => {
         popup.classList.add('hidden');
     });
