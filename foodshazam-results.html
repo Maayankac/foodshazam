@@ -53,6 +53,19 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
+    // מילון סינונימים לאלרגיות
+const allergenSynonyms = {
+  "שומשום": ["שומשום", "sesame", "sesame seeds"],
+  "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
+  "חלב": ["חלב", "milk", "dairy", "lactose"],
+  "סויה": ["סויה", "soy", "soybeans", "soy sauce"],
+  "ביצים": ["ביצים", "eggs", "egg"],
+  "גלוטן": ["גלוטן", "gluten", "wheat"],
+  "שקדים": ["שקדים", "almonds", "almond"],
+  "אגוזים": ["אגוזים", "nuts", "walnuts", "pecan", "cashew", "hazelnut"],
+  "דגים": ["דגים", "fish", "salmon", "tuna"],
+  "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
+};
     document.addEventListener('DOMContentLoaded', async () => {
       const supabaseUrl = 'https://kimdnostypcecnboxtyf.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'; // 🔒 החלף במפתח שלך
@@ -95,9 +108,13 @@
       const allergyWarningEl = document.getElementById('allergy-warning');
       const noAllergensEl = document.getElementById('no-allergens');
 
-      const matchingAllergens = allergensInScan.filter(a =>
-        userAllergies.some(ua => a.toLowerCase().includes(ua.toLowerCase()))
-      );
+   const matchingAllergens = allergensInScan.filter(scannedAllergen =>
+  userAllergies.some(userAllergen => {
+    const synonyms = allergenSynonyms[userAllergen] || [userAllergen];
+    return synonyms.some(syn => scannedAllergen.toLowerCase().includes(syn.toLowerCase()));
+  })
+);
+
 
       if (matchingAllergens.length > 0) {
         allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
