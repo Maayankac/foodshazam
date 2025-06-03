@@ -101,8 +101,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           user_id: user.id,
           image_url: imageUrl,
           total_calories: totalCalories,
-          ingredients: JSON.stringify(ingredients),
-          allergens: JSON.stringify(allergens),
+          ingredients: ingredients,
+  allergens: allergens,
           created_at: new Date().toISOString()
         }]);
 
