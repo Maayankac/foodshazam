@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FoodShazam - פרופיל</title>
   <link rel="stylesheet" href="foodshazam-profil.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script defer src="foodshazam-profile.js"></script> <!-- שם נכון לקובץ ה-JS -->
+  <script defer src="foodshazam-profile.js"></script>
 </head>
 <body>
   <h1>הפרופיל שלי</h1>
-  <div id="profile-container">
+
+  <div class="profile-container">
     <p><strong>שם מלא:</strong> <span id="profile-name">...</span></p>
     <p><strong>אימייל:</strong> <span id="profile-email">...</span></p>
     <p><strong>העדפת תזונה:</strong> <span id="profile-diet">...</span></p>
     <p><strong>אלרגיות:</strong> <span id="profile-allergies">...</span></p>
-    <button id="logout-button">התנתק</button>
+    <button id="logout-button" class="btn">התנתק</button>
   </div>
 
-  <button id="toggle-edit-button">ערוך פרופיל ⬇️</button>
-  <div id="edit-profile-wrapper" style="display:none;">
+  <button id="toggle-edit-button" class="btn">ערוך פרופיל ⬇️</button>
+
+  <div id="edit-profile-wrapper">
     <form id="edit-profile-form">
       <label>שם מלא:
         <input type="text" id="edit-fullname" placeholder="שם מלא">
       </label>
+
       <label>העדפת תזונה:
         <select id="edit-diet">
           <option value="">בחר</option>
@@ -35,19 +38,21 @@
           <option value="lactose_free">רגישות ללקטוז</option>
         </select>
       </label>
+
       <div>
         <p>אלרגיות:</p>
         <div id="edit-allergies-list"></div>
         <input type="text" id="new-edit-allergy" placeholder="הוסף אלרגיה">
-        <button type="button" id="add-edit-allergy">➕ הוסף</button>
+        <button type="button" id="add-edit-allergy" class="btn">➕ הוסף</button>
       </div>
-      <button type="submit">💾 שמור שינויים</button>
+
+      <button type="submit" class="btn save-btn">💾 שמור שינויים</button>
       <div id="edit-message" class="hidden"></div>
     </form>
   </div>
 
   <nav class="bottom-nav">
-    <a href="foodshazma-home.html" class="active">
+    <a href="foodshazma-home.html">
       <img src="home.png" alt="בית">
       <span>בית</span>
     </a>
@@ -59,9 +64,9 @@
       <img src="history.png" alt="היסטוריה">
       <span>היסטוריה</span>
     </a>
-    <a href="foodshazam-signup.html">
+    <a href="foodshazam-signup.html" class="active">
       <img src="signup.png" alt="פרופיל">
-      <span>הרשמה/פרופיל</span>
+      <span>פרופיל</span>
     </a>
   </nav>
 </body>
