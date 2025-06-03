@@ -6,22 +6,24 @@
   <title>FoodShazam - פרופיל</title>
   <link rel="stylesheet" href="foodshazam-profil.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script defer src="foodshazam-profile.js"></script>
+  <script defer src="foodshazam-profile.js"></script> <!-- שם נכון לקובץ ה-JS -->
 </head>
 <body>
   <h1>הפרופיל שלי</h1>
   <div id="profile-container">
-    <p><strong>שם מלא:</strong> <span id="profile-name"></span></p>
-    <p><strong>אימייל:</strong> <span id="profile-email"></span></p>
-    <p><strong>העדפת תזונה:</strong> <span id="profile-diet"></span></p>
-    <p><strong>אלרגיות:</strong> <span id="profile-allergies"></span></p>
+    <p><strong>שם מלא:</strong> <span id="profile-name">...</span></p>
+    <p><strong>אימייל:</strong> <span id="profile-email">...</span></p>
+    <p><strong>העדפת תזונה:</strong> <span id="profile-diet">...</span></p>
+    <p><strong>אלרגיות:</strong> <span id="profile-allergies">...</span></p>
     <button id="logout-button">התנתק</button>
   </div>
-  
+
   <button id="toggle-edit-button">ערוך פרופיל ⬇️</button>
   <div id="edit-profile-wrapper" style="display:none;">
     <form id="edit-profile-form">
-      <label>שם מלא: <input type="text" id="edit-fullname"></label>
+      <label>שם מלא:
+        <input type="text" id="edit-fullname" placeholder="שם מלא">
+      </label>
       <label>העדפת תזונה:
         <select id="edit-diet">
           <option value="">בחר</option>
