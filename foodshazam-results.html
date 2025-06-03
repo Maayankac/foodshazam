@@ -118,12 +118,15 @@
     const allergensListEl = document.getElementById('allergens-list');
     const allergyWarningEl = document.getElementById('allergy-warning');
     const noAllergensEl = document.getElementById('no-allergens');
+console.log("📦 רשימת אלרגיות המשתמש:", userAllergies);
+console.log("🧩 כל הסינונימים לבדיקה:", allergySynonyms);
+console.log("🧪 רשימת מרכיבים שנסרקו:", allergensInScan);
 
-    const matchingAllergens = allergensInScan.filter(scannedAllergen =>
-      allergySynonyms.some(syn =>
-        scannedAllergen.toLowerCase().includes(syn)
-      )
-    );
+const matchingAllergens = allergensInScan.filter(scannedAllergen =>
+  allergySynonyms.some(syn =>
+    scannedAllergen.trim().toLowerCase().includes(syn.trim())
+  )
+);
 
     if (matchingAllergens.length > 0) {
       allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
