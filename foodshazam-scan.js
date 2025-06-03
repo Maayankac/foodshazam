@@ -95,16 +95,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       console.log("🧠 הכנסת user_id:", user.id);
 
-      const { error: insertError } = await supabase
-        .from('history')
-        .insert([{
-          user_id: user.id,
-          image_url: imageUrl,
-          total_calories: totalCalories,
-          ingredients: ingredients,
-  allergens: allergens,
-          created_at: new Date().toISOString()
-        }]);
+    const { error: insertError } = await supabase
+  .from('history')
+  .insert([{
+    user_id: user.id,
+    image_url: imageUrl,
+    total_calories: totalCalories,
+    ingredients: ingredients, // ✅
+    allergens: allergens,     // ✅
+    created_at: new Date().toISOString()
+  }]);
+
 
       if (insertError) {
         console.error('❌ שגיאה בהכנסה:', insertError.message);
