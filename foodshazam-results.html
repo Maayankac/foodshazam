@@ -121,10 +121,14 @@
       document.getElementById('scanned-image').src = imageUrl || '';
       document.getElementById('total-calories').textContent = totalCalories;
 
-      const ingredientsListEl = document.getElementById('ingredients-list');
-      ingredientsListEl.innerHTML = ingredients.length > 0
-        ? ingredients.map(item => `<li>${item.name}: ${item.calories} קלוריות</li>`).join('')
-        : '<li>לא זוהו מרכיבים.</li>';
+ingredientsListEl.innerHTML = ingredients.length > 0
+  ? ingredients.map(item => {
+      const name = item?.name || 'מרכיב לא ידוע';
+      const calories = item?.calories ?? '?';
+      return `<li>${name}: ${calories} קלוריות</li>`;
+    }).join('')
+  : '<li>לא זוהו מרכיבים.</li>';
+
 
       const allergensListEl = document.getElementById('allergens-list');
       const allergyWarningEl = document.getElementById('allergy-warning');
