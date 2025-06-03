@@ -87,8 +87,10 @@ const allergenSynonyms = {
 
       const userAllergies = userData?.allergies || [];
 
-      const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
-      const allergensInScan = JSON.parse(sessionStorage.getItem('allergens') || '[]');
+     const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
+const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
+const allergensInScan = [...ingredients.map(i => i.name), ...allergensFromSession];
+
       const imageUrl = sessionStorage.getItem('imageUrl') || '';
       const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
 
