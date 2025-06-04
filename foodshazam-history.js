@@ -76,25 +76,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         popupIngredients.appendChild(li);
       });
 
-      if (allergens?.length > 0) {
-        const header = document.createElement('h4');
-        header.textContent = 'אלרגנים:';
-        popupAllergens.appendChild(header);
+if (allergens?.length > 0) {
+  const header = document.createElement('h4');
+  header.textContent = 'אלרגנים:';
+  popupAllergens.appendChild(header);
 
-allergens.forEach(a => {
-  const li = document.createElement('li');
-  const allergenName = typeof a === 'object' && a !== null ? a.name : a;
-  li.textContent = '⚠️ ' + allergenName;
-  li.style.color = 'red';
-  popupAllergens.appendChild(li);
-});
-        allergens.forEach(a => {
-          const li = document.createElement('li');
-          li.textContent = '⚠️ ' + a;
-          li.style.color = 'red';
-          popupAllergens.appendChild(li);
-        });
-      }
+  allergens.forEach(a => {
+    const li = document.createElement('li');
+    const allergenName = typeof a === 'object' && a !== null ? a.name : a;
+    li.textContent = '⚠️ ' + allergenName;
+    li.style.color = 'red';
+    popupAllergens.appendChild(li);
+  });
+}
+
 
       popup.classList.remove('hidden');
     });
