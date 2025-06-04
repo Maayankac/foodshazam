@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let stream, cameraActive = false, imageBlob = null;
 
-  // קבלת המשתמש המחובר
   const { data: sessionData, error } = await supabase.auth.getSession();
   const user = sessionData?.session?.user;
 
@@ -29,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log("✅ user.id:", user.id);
   sessionStorage.setItem('userId', user.id);
 
-  // הפעלת מצלמה
   cameraToggle?.addEventListener('click', async () => {
     if (!cameraActive) {
       try {
@@ -93,19 +91,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
 
-      console.log("🧠 הכנסת user_id:", user.id);
+      // ✅ המרה למחרוזות
+      const simplifiedAllergens = allergens.map(a =>
+        typeof a === 'string' ? a : a.name || JSON.stringify(a)
+      );
 
-    const { error: insertError } = await supabase
-  .from('history')
-  .insert([{
-    user_id: user.id,
-    image_url: imageUrl,
-    total_calories: totalCalories,
-    ingredients: ingredients, // ✅
-    allergens: allergens,     // ✅
-    created_at: new Date().toISOString()
-  }]);
-
+      const { error: insertError } = await supabase
+        .from('history')
+        .insert([{
+          user_id: user.id,
+          image_url: imageUrl,
+          total_calories: totalCalories,
+          ingredients: ingredients,
+          allergens: simplifiedAllergens,
+          created_at: new Date().toISOString()
+        }]);
 
       if (insertError) {
         console.error('❌ שגיאה בהכנסה:', insertError.message);
@@ -113,9 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      // שמירה והעברה
       sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
-      sessionStorage.setItem('allergens', JSON.stringify(allergens));
+      sessionStorage.setItem('allergens', JSON.stringify(simplifiedAllergens));
       sessionStorage.setItem('totalCalories', totalCalories);
       sessionStorage.setItem('imageUrl', imageUrl);
       window.location.href = 'foodshazam-results.html';
