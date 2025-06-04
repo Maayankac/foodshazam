@@ -81,6 +81,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         header.textContent = 'אלרגנים:';
         popupAllergens.appendChild(header);
 
+allergens.forEach(a => {
+  const li = document.createElement('li');
+  const allergenName = typeof a === 'object' && a !== null ? a.name : a;
+  li.textContent = '⚠️ ' + allergenName;
+  li.style.color = 'red';
+  popupAllergens.appendChild(li);
+});
         allergens.forEach(a => {
           const li = document.createElement('li');
           li.textContent = '⚠️ ' + a;
