@@ -82,10 +82,10 @@
         .eq('id', user.id)
         .single();
 
-      const userAllergiesRaw = userData?.allergies || [];
-      const userAllergies = Array.isArray(userAllergiesRaw)
-        ? userAllergiesRaw
-        : userAllergiesRaw.split(',').map(a => a.trim().toLowerCase());
+     const userAllergies = typeof userData?.allergies === 'string'
+  ? userData.allergies.split(',').map(a => a.trim().toLowerCase())
+  : (userData?.allergies || []).map(a => a.trim().toLowerCase());
+
 
       const reverseSynonymsMap = {};
       Object.entries(allergenSynonyms).forEach(([main, synonyms]) => {
