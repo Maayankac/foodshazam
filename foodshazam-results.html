@@ -53,18 +53,32 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    const allergenSynonyms = {
-      "שומשום": ["שומשום", "sesame", "sesame seeds"],
-      "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut sauce"],
-      "חלב": ["חלב", "milk", "dairy", "lactose"],
-      "סויה": ["סויה", "soy", "soybeans", "soy sauce"],
-      "ביצים": ["ביצים", "eggs", "egg"],
-      "גלוטן": ["גלוטן", "gluten", "wheat"],
-      "שקדים": ["שקדים", "almonds", "almond"],
-      "אגוזים": ["אגוזים", "nuts", "walnuts", "pecan", "cashew", "hazelnut"],
-      "דגים": ["דגים", "fish", "salmon", "tuna"],
-      "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "shellfish"]
-    };
+const allergenSynonyms = {
+  "שומשום": ["שומשום", "sesame", "sesame seeds", "tahini", "טחינה", "סומסום"],
+  "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut butter", "peanut sauce", "חמאת בוטנים"],
+  "חלב": ["חלב", "milk", "dairy", "lactose", "גבינה", "שמנת", "יוגורט", "קוטג'", "קפיר", "butter", "cream", "cheese", "mozzarella", "פרמזן", "ברי", "קממבר"],
+  "סויה": ["סויה", "soy", "soybeans", "soy sauce", "tofu", "edamame", "חלב סויה", "רוטב סויה"],
+  "ביצים": ["ביצים", "egg", "eggs", "omelette", "omelet", "egg yolk", "egg whites", "חלמון", "חלבון", "מיונז", "mayonnaise", "quiche"],
+  "גלוטן": ["גלוטן", "gluten", "wheat", "קמח", "לחם", "סולת", "שיבולת שועל", "oats", "פסטה", "crackers", "בולגר", "semolina", "breadcrumbs", "לחמניה"],
+  "שקדים": ["שקדים", "almond", "almonds", "almond milk", "almond flour", "מרציפן", "שקדיה"],
+  "אגוזים": ["אגוזים", "nuts", "walnuts", "pecans", "hazelnuts", "cashews", "macadamia", "pistachio", "nutella", "מקדמיה", "פיסטוק", "אגוז לוז", "אגוזי מלך"],
+  "דגים": ["דגים", "fish", "tuna", "salmon", "cod", "דניס", "בורי", "סלמון", "tilapia", "anchovy", "סרדין"],
+  "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "lobster", "octopus", "calamari", "scallops", "שרימפס", "קלמרי", "תמנון", "לובסטר"],
+  "תירס": ["תירס", "corn", "corn flour", "corn starch", "cornmeal", "סירופ תירס", "corn syrup", "maize"],
+  "שום": ["שום", "garlic", "garlic powder", "שום גבישי", "שום כתוש"],
+  "בצל": ["בצל", "onion", "onion powder", "fried onion"],
+  "חרדל": ["חרדל", "mustard", "mustard seeds", "דיז'ון"],
+  "שמרים": ["שמרים", "yeast", "nutritional yeast", "brewer's yeast"],
+  "שוקולד": ["שוקולד", "chocolate", "dark chocolate", "cocoa", "cacao", "אבקת קקאו"],
+  "קפאין": ["קפאין", "caffeine", "קפה", "coffee", "tea", "energy drink", "espresso"],
+  "ללא חלב": ["ללא חלב", "dairy-free", "non-dairy", "milk-free", "חופשי מחלב"],
+  "ללא גלוטן": ["ללא גלוטן", "gluten-free", "free of gluten", "חופשי מגלוטן"],
+  "ללא ביצים": ["ללא ביצים", "egg-free", "free of eggs", "חופשי מביצים"],
+  "ללא בוטנים": ["ללא בוטנים", "peanut-free", "free of peanuts"],
+  "ללא אגוזים": ["ללא אגוזים", "nut-free", "free of nuts"],
+  "ללא סויה": ["ללא סויה", "soy-free", "free of soy"],
+  "ללא שומשום": ["ללא שומשום", "sesame-free", "free of sesame"],
+};
 
     document.addEventListener('DOMContentLoaded', async () => {
       const supabase = window.supabase.createClient(
