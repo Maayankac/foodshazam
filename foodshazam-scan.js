@@ -75,57 +75,112 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  async function processImage(blob) {
-    showLoading();
-    const formData = new FormData();
-    formData.append('image', blob);
-    formData.append('user_id', user.id);
+async function processImage(blob) {
+  showLoading();
+  const formData = new FormData();
+  formData.append('image', blob);
+  formData.append('user_id', user.id);
 
-    try {
-      const response = await fetch('/analyze-image', {
-        method: 'POST',
-        body: formData
-      });
+  try {
+    const response = await fetch('/analyze-image', {
+      method: 'POST',
+      body: formData
+    });
 
-      if (!response.ok) throw new Error('שגיאה מהשרת');
+    if (!response.ok) throw new Error('שגיאה מהשרת');
 
-      const { ingredients, allergens, totalCalories, imageUrl } = await response.json();
+    const { ingredients, allergens: rawAllergens, totalCalories, imageUrl } = await response.json();
 
-      // ✅ המרה למחרוזות
-      const simplifiedAllergens = allergens.map(a =>
-        typeof a === 'string' ? a : a.name || JSON.stringify(a)
-      );
+    // שלב 1: קבלת אלרגיות המשתמש
+    const { data: userData } = await supabase
+      .from('users')
+      .select('allergies')
+      .eq('id', user.id)
+      .single();
 
-      const { error: insertError } = await supabase
-        .from('history')
-        .insert([{
-          user_id: user.id,
-          image_url: imageUrl,
-          total_calories: totalCalories,
-          ingredients: ingredients,
-          allergens: simplifiedAllergens,
-          created_at: new Date().toISOString()
-        }]);
+    const userAllergies = typeof userData?.allergies === 'string'
+      ? userData.allergies.split(',').map(a => a.trim().toLowerCase())
+      : (userData?.allergies || []).map(a => a.trim().toLowerCase());
 
-      if (insertError) {
-        console.error('❌ שגיאה בהכנסה:', insertError.message);
-        showMessage('⚠️ שגיאה בשמירת היסטוריה', 'error');
-        return;
-      }
+    // שלב 2: נירמול
+    const allergenSynonyms = {
+"שומשום": ["שומשום", "sesame", "sesame seeds", "tahini", "טחינה", "סומסום"],
+  "בוטנים": ["בוטנים", "peanut", "peanuts", "peanut butter", "peanut sauce", "חמאת בוטנים"],
+  "חלב": ["חלב", "milk", "dairy", "lactose", "גבינה", "שמנת", "יוגורט", "קוטג'", "קפיר", "butter", "cream", "cheese", "mozzarella", "פרמזן", "ברי", "קממבר"],
+  "סויה": ["סויה", "soy", "soybeans", "soy sauce", "tofu", "edamame", "חלב סויה", "רוטב סויה"],
+  "ביצים": ["ביצים", "egg", "eggs", "omelette", "omelet", "egg yolk", "egg whites", "חלמון", "חלבון", "מיונז", "mayonnaise", "quiche"],
+  "גלוטן": ["גלוטן", "gluten", "wheat", "קמח", "לחם", "סולת", "שיבולת שועל", "oats", "פסטה", "crackers", "בולגר", "semolina", "breadcrumbs", "לחמניה""בצק פיצה"],
+  "שקדים": ["שקדים", "almond", "almonds", "almond milk", "almond flour", "מרציפן", "שקדיה"],
+  "אגוזים": ["אגוזים", "nuts", "walnuts", "pecans", "hazelnuts", "cashews", "macadamia", "pistachio", "nutella", "מקדמיה", "פיסטוק", "אגוז לוז", "אגוזי מלך"],
+  "דגים": ["דגים", "fish", "tuna", "salmon", "cod", "דניס", "בורי", "סלמון", "tilapia", "anchovy", "סרדין"],
+  "פירות ים": ["פירות ים", "seafood", "shrimp", "crab", "lobster", "octopus", "calamari", "scallops", "שרימפס", "קלמרי", "תמנון", "לובסטר"],
+  "תירס": ["תירס", "corn", "corn flour", "corn starch", "cornmeal", "סירופ תירס", "corn syrup", "maize"],
+  "שום": ["שום", "garlic", "garlic powder", "שום גבישי", "שום כתוש"],
+  "בצל": ["בצל", "onion", "onion powder", "fried onion"],
+  "חרדל": ["חרדל", "mustard", "mustard seeds", "דיז'ון"],
+  "שמרים": ["שמרים", "yeast", "nutritional yeast", "brewer's yeast"],
+  "שוקולד": ["שוקולד", "chocolate", "dark chocolate", "cocoa", "cacao", "אבקת קקאו"],
+  "קפאין": ["קפאין", "caffeine", "קפה", "coffee", "tea", "energy drink", "espresso"],
+  "ללא חלב": ["ללא חלב", "dairy-free", "non-dairy", "milk-free", "חופשי מחלב"],
+  "ללא גלוטן": ["ללא גלוטן", "gluten-free", "free of gluten", "חופשי מגלוטן"],
+  "ללא ביצים": ["ללא ביצים", "egg-free", "free of eggs", "חופשי מביצים"],
+  "ללא בוטנים": ["ללא בוטנים", "peanut-free", "free of peanuts"],
+  "ללא אגוזים": ["ללא אגוזים", "nut-free", "free of nuts"],
+  "ללא סויה": ["ללא סויה", "soy-free", "free of soy"],
+  "ללא שומשום": ["ללא שומשום", "sesame-free", "free of sesame"],
+};
 
-      sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
-      sessionStorage.setItem('allergens', JSON.stringify(simplifiedAllergens));
-      sessionStorage.setItem('totalCalories', totalCalories);
-      sessionStorage.setItem('imageUrl', imageUrl);
-      window.location.href = 'foodshazam-results.html';
+    const reverseMap = {};
+    Object.entries(allergenSynonyms).forEach(([main, terms]) =>
+      terms.forEach(t => reverseMap[t.toLowerCase()] = main)
+    );
 
-    } catch (e) {
-      console.error('🧨 שגיאה:', e);
-      showMessage('⚠️ שגיאה כללית', 'error');
-    } finally {
-      hideLoading();
+    const normalizedAllergies = userAllergies.map(a => reverseMap[a.toLowerCase()] || a);
+
+    const allergyTerms = normalizedAllergies.flatMap(a =>
+      allergenSynonyms[a] || [a]
+    ).map(t => t.toLowerCase());
+
+    // שלב 3: בדיקת התאמה
+    const detectedAllergens = [...(ingredients || []).map(i => i.name), ...(rawAllergens || [])];
+
+    const matchedAllergens = detectedAllergens.filter(ing =>
+      typeof ing === 'string' &&
+      allergyTerms.some(syn => ing.toLowerCase().includes(syn))
+    );
+
+    // שלב 4: שמירה להיסטוריה
+    const { error: insertError } = await supabase
+      .from('history')
+      .insert([{
+        user_id: user.id,
+        image_url: imageUrl,
+        total_calories: totalCalories,
+        ingredients,
+        allergens: matchedAllergens,
+        created_at: new Date().toISOString()
+      }]);
+
+    if (insertError) {
+      console.error('❌ שגיאה בהכנסה:', insertError.message);
+      showMessage('⚠️ שגיאה בשמירת היסטוריה', 'error');
+      return;
     }
+
+    // שמירה ל-sessionStorage
+    sessionStorage.setItem('ingredients', JSON.stringify(ingredients));
+    sessionStorage.setItem('allergens', JSON.stringify(matchedAllergens));
+    sessionStorage.setItem('totalCalories', totalCalories);
+    sessionStorage.setItem('imageUrl', imageUrl);
+    window.location.href = 'foodshazam-results.html';
+
+  } catch (e) {
+    console.error('🧨 שגיאה:', e);
+    showMessage('⚠️ שגיאה כללית', 'error');
+  } finally {
+    hideLoading();
   }
+}
 
   function showLoading() {
     loadingSection?.classList.remove('hidden');
