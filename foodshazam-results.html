@@ -86,71 +86,86 @@ const allergenSynonyms = {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpbWRub3N0eXBjZWNuYm94dHlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4MjMwODQsImV4cCI6MjA2MTM5OTA4NH0.CwJTYsEcmSPmvqTm9Jvt3sRzPcGuO9rZbCp2viZVyP4'
       );
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
-      if (!user) return;
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData?.session?.user;
+  if (!user) return;
 
-      const { data: userData } = await supabase
-        .from('users')
-        .select('allergies')
-        .eq('id', user.id)
-        .single();
+  const { data: userData } = await supabase
+    .from('users')
+    .select('allergies')
+    .eq('id', user.id)
+    .single();
 
-     const userAllergies = typeof userData?.allergies === 'string'
-  ? userData.allergies.split(',').map(a => a.trim().toLowerCase())
-  : (userData?.allergies || []).map(a => a.trim().toLowerCase());
+  const userAllergies = typeof userData?.allergies === 'string'
+    ? userData.allergies.split(',').map(a => a.trim().toLowerCase())
+    : (userData?.allergies || []).map(a => a.trim().toLowerCase());
 
+  const reverseSynonymsMap = {};
+  Object.entries(allergenSynonyms).forEach(([main, synonyms]) => {
+    synonyms.forEach(s => reverseSynonymsMap[s.toLowerCase()] = main);
+  });
 
-      const reverseSynonymsMap = {};
-      Object.entries(allergenSynonyms).forEach(([main, synonyms]) => {
-        synonyms.forEach(s => reverseSynonymsMap[s.toLowerCase()] = main);
-      });
+  const normalizedAllergies = userAllergies.map(a => reverseSynonymsMap[a.toLowerCase()] || a);
+  const allergySynonyms = normalizedAllergies.flatMap(allergy => allergenSynonyms[allergy] || [allergy])
+                                             .map(a => a.toLowerCase());
 
-      const normalizedAllergies = userAllergies.map(a => reverseSynonymsMap[a.toLowerCase()] || a);
+  const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
+  const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
+  const imageUrl = sessionStorage.getItem('imageUrl') || '';
+  const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
 
-      const allergySynonyms = normalizedAllergies.flatMap(allergy =>
-        allergenSynonyms[allergy] || [allergy]
-      ).map(a => a.toLowerCase());
+  document.getElementById('scanned-image').src = imageUrl;
+  document.getElementById('total-calories').textContent = totalCalories;
 
-      const ingredients = JSON.parse(sessionStorage.getItem('ingredients') || '[]');
-      const allergensFromSession = JSON.parse(sessionStorage.getItem('allergens') || '[]');
-      const allergensInScan = [...ingredients.map(i => i.name), ...allergensFromSession];
+  const ingredientsListEl = document.getElementById('ingredients-list');
+  const allergensListEl = document.getElementById('allergens-list');
+  const allergyWarningEl = document.getElementById('allergy-warning');
+  const noAllergensEl = document.getElementById('no-allergens');
 
-      const imageUrl = sessionStorage.getItem('imageUrl') || '';
-      const totalCalories = +sessionStorage.getItem('totalCalories') || 0;
+  const detectedAllergens = [];
 
-      document.getElementById('scanned-image').src = imageUrl || '';
-      document.getElementById('total-calories').textContent = totalCalories;
+  ingredientsListEl.innerHTML = ingredients.length > 0
+    ? ingredients.map(item => {
+        const name = item?.name || 'מרכיב לא ידוע';
+        const calories = item?.calories ?? '?';
 
-      const ingredientsListEl = document.getElementById('ingredients-list');
-      ingredientsListEl.innerHTML = ingredients.length > 0
-        ? ingredients.map(item => {
-            const name = item?.name || 'מרכיב לא ידוע';
-            const calories = item?.calories ?? '?';
-            return `<li>${name}: ${calories} קלוריות</li>`;
-          }).join('')
-        : '<li>לא זוהו מרכיבים.</li>';
+        const isAllergen = allergySynonyms.some(syn =>
+          name.toLowerCase().includes(syn)
+        );
 
-      const allergensListEl = document.getElementById('allergens-list');
-      const allergyWarningEl = document.getElementById('allergy-warning');
-      const noAllergensEl = document.getElementById('no-allergens');
-const matchingAllergens = allergensInScan.filter(scannedAllergen =>
-  typeof scannedAllergen === 'string' &&
-  allergySynonyms.some(syn =>
-    scannedAllergen.toLowerCase().includes(syn)
-  )
-);
+        if (isAllergen) {
+          detectedAllergens.push(name);
+          return `<li style="color:red; font-weight:bold;">⚠️ ${name}: ${calories} קלוריות</li>`;
+        } else {
+          return `<li>${name}: ${calories} קלוריות</li>`;
+        }
+      }).join('')
+    : '<li>לא זוהו מרכיבים.</li>';
 
+  const uniqueAllergens = new Set();
+  allergensFromSession.forEach(a => {
+    if (
+      typeof a === 'string' &&
+      !detectedAllergens.some(d => d.toLowerCase().includes(a.toLowerCase()))
+    ) {
+      uniqueAllergens.add(a);
+    }
+  });
 
-      if (matchingAllergens.length > 0) {
-        allergensListEl.innerHTML = matchingAllergens.map(a => `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`).join('');
-        allergyWarningEl.classList.remove('hidden');
-        noAllergensEl.classList.add('hidden');
-      } else {
-        allergyWarningEl.classList.add('hidden');
-        noAllergensEl.classList.remove('hidden');
-      }
+  if (detectedAllergens.length > 0 || uniqueAllergens.size > 0) {
+    allergyWarningEl.classList.remove('hidden');
+    noAllergensEl.classList.add('hidden');
+
+    allergensListEl.innerHTML = '';
+    [...detectedAllergens, ...uniqueAllergens].forEach(a => {
+      allergensListEl.innerHTML += `<li style="color:red; font-weight:bold;">⚠️ ${a}</li>`;
     });
-  </script>
+  } else {
+    allergyWarningEl.classList.add('hidden');
+    noAllergensEl.classList.remove('hidden');
+  }
+});
+</script>
+
 </body>
 </html>
